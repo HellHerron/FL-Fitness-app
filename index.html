@@ -92,8 +92,6 @@ body{
 .stat.meals::after{background:var(--gradOrange)}
 .stat.workouts::after{background:var(--gradGreen)}
 .stat.progress::after{background:var(--gradRed)}
-.stat.cardio::after{background:linear-gradient(135deg,#7f00ff 0%, #e100ff 100%)}
-.stat.steps::after{background:linear-gradient(135deg,#f7971e 0%, #ffd200 100%)}
 .statRow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;position:relative;z-index:2}
 .statName{font-weight:950;font-size:22px;letter-spacing:-.02em}
 .statVal{font-weight:950;font-size:30px;letter-spacing:-.02em}
@@ -280,7 +278,7 @@ textarea{min-height:110px;resize:vertical}
       </div>
 
       <div class="card sectionPad">
-        <div class="grid2" id="dashTiles">
+        <div class="grid2">
           <div class="stat weight" data-nav="weight">
             <div class="statRow">
               <div>
@@ -312,23 +310,6 @@ textarea{min-height:110px;resize:vertical}
                 <div class="statSub" id="dashProgressSub">Waist / notes</div>
               </div>
             </div>
-          <div class="stat cardio" data-nav="cardio">
-            <div class="statRow">
-              <div>
-                <div class="statName">Cardio</div>
-                <div class="statVal"><span id="dashCardio">0</span> <span class="statUnit">Runs</span></div>
-              </div>
-            </div>
-            <div class="statSub" id="dashCardioSub">This month</div>
-          </div>
-          <div class="stat steps" data-nav="steps">
-            <div class="statRow">
-              <div>
-                <div class="statName">Steps</div>
-                <div class="statVal"><span id="dashSteps">0</span> <span class="statUnit">Today</span></div>
-              </div>
-            </div>
-            <div class="statSub" id="dashStepsSub">Target: —</div>
           </div>
         </div>
 
@@ -379,6 +360,7 @@ textarea{min-height:110px;resize:vertical}
 
       <div id="workoutSessionView" class="hidden">
         <div class="pills" id="exTabs"></div>
+        <div class="tbSub" style="padding:0 12px;margin-top:8px">To add/remove exercises: tap <b>Edit Day</b> (edits the workout template).</div>
 
         <div class="card sectionPad">
           <div class="panel">
@@ -413,10 +395,9 @@ textarea{min-height:110px;resize:vertical}
           </div>
           <label>Coach Notes (optional)</label>
           <textarea id="wo_coach" placeholder="Advice for next time"></textarea>
-          <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+          <div style="display:flex;gap:10px;margin-top:10px">
             <button class="btnSm" id="wo_back_days">Days</button>
-            <button class="btnSm" id="wo_add_ex" style="flex:1;background:rgba(255,255,255,.08)">+ Exercise</button>
-            <button class="btnSm danger" id="wo_del_ex" style="flex:1">Remove Exercise</button>
+            <button class="btnSm" id="wo_edit_day" style="flex:1;background:rgba(255,255,255,.08)">Edit Day</button>
             <button class="btnSm" id="wo_load_prev" style="flex:1">Load Last</button>
             <button class="btnSm" id="wo_save" style="flex:1;background:var(--gradOrange);color:#140d2e;border:none">Save</button>
           </div>
@@ -562,82 +543,7 @@ textarea{min-height:110px;resize:vertical}
       </div>
     </div>
 
-    
-    <!-- STEPS -->
-    <div id="page-steps" class="page">
-      <div class="toolbar">
-        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
-        <div style="text-align:center;flex:1">
-          <div class="tbTitle">Steps</div>
-          <div class="tbSub">Daily step log</div>
-        </div>
-        <div class="iconBtn">👟</div>
-      </div>
-
-      <div class="card sectionPad">
-        <div class="totalBar" id="stepsTotalBar">Today: —</div>
-
-        <div class="formRow" style="margin-top:10px">
-          <div><label>Date</label><input id="s_date" type="date"></div>
-          <div><label>Steps</label><input id="s_steps" inputmode="numeric" placeholder="8000"></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="s_cancel" style="display:none">Cancel</button>
-          <button class="btnSm" id="s_save" style="flex:1;background:linear-gradient(135deg,#f7971e 0%, #ffd200 100%);color:#140d2e;border:none">Add</button>
-        </div>
-
-        <div style="margin-top:12px" class="list" id="s_list"></div>
-        <div class="small" style="margin-top:10px;opacity:.8">
-          Note: For privacy + reliability, this app uses manual step entries. (Auto step syncing would require Google Fit/Health Connect integration.)
-        </div>
-      </div>
-    </div>
-
-    <!-- CARDIO -->
-    <div id="page-cardio" class="page">
-      <div class="toolbar">
-        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
-        <div style="text-align:center;flex:1">
-          <div class="tbTitle">Cardio</div>
-          <div class="tbSub">Runs / cardio sessions</div>
-        </div>
-        <div class="iconBtn">🏃</div>
-      </div>
-
-      <div class="card sectionPad">
-        <div class="totalBar" id="c_totalBar">This month: —</div>
-
-        <div class="formRow" style="margin-top:10px">
-          <div><label>Date</label><input id="c_date" type="date"></div>
-          <div><label>Type</label>
-            <select id="c_type">
-              <option value="Run">Run</option>
-              <option value="Treadmill">Treadmill</option>
-              <option value="Bike">Bike</option>
-              <option value="Row">Row</option>
-              <option value="Other">Other</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="formRow" style="margin-top:10px">
-          <div><label>Distance (km)</label><input id="c_km" inputmode="decimal" placeholder="5"></div>
-          <div><label>Time (mm:ss)</label><input id="c_time" placeholder="25:30"></div>
-        </div>
-
-        <label>Notes</label>
-        <textarea id="c_notes" placeholder="Easy pace, intervals, HR, route…"></textarea>
-
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="c_cancel" style="display:none">Cancel</button>
-          <button class="btnSm" id="c_save" style="flex:1;background:linear-gradient(135deg,#7f00ff 0%, #e100ff 100%);color:#fff;border:none">Add</button>
-        </div>
-
-        <div style="margin-top:12px" class="list" id="c_list"></div>
-      </div>
-    </div>
-
-<!-- SETTINGS (simple modal) -->
+    <!-- SETTINGS (simple modal) -->
     <div class="card sectionPad hidden" id="settingsModal">
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
         <div style="font-weight:950;font-size:18px">Settings</div>
@@ -645,7 +551,6 @@ textarea{min-height:110px;resize:vertical}
       </div>
       <label>Calories/day</label><input id="t_cal" inputmode="numeric">
       <label>Protein/day (g)</label><input id="t_pro" inputmode="numeric">
-      <label>Steps/day target</label><input id="t_steps" inputmode="numeric" placeholder="8000">
       <div class="formRow">
         <div><label>Age</label><input id="age" inputmode="numeric"></div>
         <div><label>Sex</label><select id="sex"><option value="male">Male</option><option value="female">Female</option></select></div>
@@ -666,7 +571,7 @@ textarea{min-height:110px;resize:vertical}
 
 <script>
 (() => {
-  const APP_KEY="fitness_log_vibrant_v2";
+  const APP_KEY="fitness_log_vibrant_v2_1";
   const todayISO=()=>new Date().toISOString().slice(0,10);
   const uid=()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
   const $=(id)=>document.getElementById(id);
@@ -676,8 +581,8 @@ textarea{min-height:110px;resize:vertical}
 
   const defaultStore=()=>({
     profile:{age:30,sex:"male",heightCm:178,weightKg:84.5,gymDays:4,goal:"75kg with visible six-pack, then lean gain"},
-    targets:{calories:2200,proteinG:170,steps:8000},
-    weights:[], meals:[], progress:[], steps:[], cardio:[],
+    targets:{calories:2200,proteinG:170},
+    weights:[], meals:[], progress:[],
     coach:{meals:"",workouts:"",progress:""},
     workoutDays:[
       {id:"push",name:"Push",notes:"",scheduled:[1,4],exercises:[{name:"Bench Press",defaultSets:3},{name:"Overhead Press",defaultSets:3},{name:"Tricep Extensions",defaultSets:3}]},
@@ -697,8 +602,6 @@ textarea{min-height:110px;resize:vertical}
     meals: $("page-meals"),
     weight: $("page-weight"),
     progress: $("page-progress"),
-    steps: $("page-steps"),
-    cardio: $("page-cardio"),
   };
 
   function setPage(name){
@@ -710,8 +613,6 @@ textarea{min-height:110px;resize:vertical}
     if(name==="meals") renderMealsPage();
     if(name==="weight") renderWeightPage();
     if(name==="progress") renderProgressPage();
-    if(name==="steps") renderStepsPage();
-    if(name==="cardio") renderCardioPage();
     if(name==="workouts"){ renderWorkoutDays(); showWorkoutDaysView(); }
   }
 
@@ -729,7 +630,6 @@ textarea{min-height:110px;resize:vertical}
   function fillSettings(){
     $("t_cal").value=store.targets.calories||"";
     $("t_pro").value=store.targets.proteinG||"";
-    $("t_steps").value=store.targets.steps||"";
     $("age").value=store.profile.age||"";
     $("sex").value=store.profile.sex||"male";
     $("heightCm").value=store.profile.heightCm||"";
@@ -745,10 +645,9 @@ textarea{min-height:110px;resize:vertical}
   $("btnSettings").addEventListener("click", openSettings);
   $("closeSettings").addEventListener("click", ()=> $("settingsModal").classList.add("hidden"));
   $("saveSettings").addEventListener("click", ()=>{
-    const c=Number($("t_cal").value), p=Number($("t_pro").value), s=Number($("t_steps").value);
+    const c=Number($("t_cal").value), p=Number($("t_pro").value);
     if(Number.isFinite(c)&&c>0) store.targets.calories=c;
     if(Number.isFinite(p)&&p>0) store.targets.proteinG=p;
-    if(Number.isFinite(s)&&s>0) store.targets.steps=s;
     store.profile.age=Number($("age").value)||store.profile.age;
     store.profile.sex=$("sex").value||store.profile.sex;
     store.profile.heightCm=Number($("heightCm").value)||store.profile.heightCm;
@@ -811,19 +710,6 @@ textarea{min-height:110px;resize:vertical}
 
     // Workouts tile
     $("dashWorkouts").textContent = String(workoutsThisWeek());
-
-    // Cardio + Steps tiles
-    const ref=todayISO();
-    const monthRuns = store.cardio.filter(c=>c.date && isSameMonth(c.date, ref));
-    $("dashCardio").textContent = String(monthRuns.length);
-    const monthKm = monthRuns.reduce((s,x)=>s+(Number(x.km)||0),0);
-    $("dashCardioSub").textContent = monthRuns.length ? `${monthKm.toFixed(1)} km this month` : "No cardio logged";
-
-    const stepTarget = Number(store.targets?.steps||0);
-    const stepToday = (store.steps.find(s=>s.date===ref)?.steps)||0;
-    $("dashSteps").textContent = String(stepToday);
-    $("dashStepsSub").textContent = stepTarget ? `Target: ${stepTarget}` : "Set target";
-
 
     // Rings
     const tC=Number(store.targets?.calories||0), tP=Number(store.targets?.proteinG||0);
@@ -1062,130 +948,6 @@ textarea{min-height:110px;resize:vertical}
     renderProgressPage();
   });
 
-
-  // --- Steps page ---
-  let s_edit=null;
-  function renderStepsPage(){
-    $("s_date").value=todayISO();
-    const t=todayISO();
-    const target=Number(store.targets?.steps||0);
-    const todayEntry=store.steps.find(x=>x.date===t);
-    const todaySteps=todayEntry?Number(todayEntry.steps)||0:0;
-    $("stepsTotalBar").textContent = target ? `Today: ${todaySteps} / ${target} steps` : `Today: ${todaySteps} steps (set target in Settings)`;
-
-    const list=$("s_list");
-    list.innerHTML="";
-    const sorted=[...store.steps].sort((a,b)=>a.date<b.date?1:-1);
-    sorted.forEach(e=>{
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">${e.steps} steps</div><div class="itemMeta">${e.date}</div>`;
-      const acts=document.createElement("div"); acts.className="itemActions";
-      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-      b1.onclick=()=>{s_edit=e.id; $("s_date").value=e.date; $("s_steps").value=e.steps; $("s_cancel").style.display="inline-block"; $("s_save").textContent="Save";};
-      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-      b2.onclick=()=>{store.steps=store.steps.filter(x=>x.id!==e.id); save(); renderStepsPage(); renderDashboard();};
-      acts.append(b1,b2); div.append(acts); list.append(div);
-    });
-    if(!sorted.length){
-      const empty=document.createElement("div");
-      empty.className="item";
-      empty.innerHTML = `<div class="itemTitle">No steps logged yet</div><div class="itemMeta">Add your steps above</div>`;
-      list.append(empty);
-    }
-  }
-  $("s_cancel").addEventListener("click", ()=>{
-    s_edit=null; $("s_date").value=todayISO(); $("s_steps").value=""; $("s_cancel").style.display="none"; $("s_save").textContent="Add";
-  });
-  $("s_save").addEventListener("click", ()=>{
-    const date=$("s_date").value||todayISO();
-    const steps=Number($("s_steps").value);
-    if(!Number.isFinite(steps) || steps<0){alert("Enter a valid step count");return;}
-    const payload={date,steps:Math.round(steps)};
-    if(s_edit) store.steps=store.steps.map(x=>x.id===s_edit?({...x,...payload}):x);
-    else store.steps.unshift({id:uid(),...payload});
-    save();
-    $("s_cancel").click();
-    renderStepsPage(); renderDashboard();
-  });
-
-  // --- Cardio page ---
-  let c_edit=null;
-  function parseTimeToSec(s){
-    const t=String(s||"").trim();
-    if(!t) return null;
-    const parts=t.split(":").map(x=>x.trim());
-    if(parts.length===1){
-      const m=Number(parts[0]); return Number.isFinite(m)?Math.round(m*60):null;
-    }
-    if(parts.length===2){
-      const m=Number(parts[0]), sec=Number(parts[1]);
-      if(!Number.isFinite(m)||!Number.isFinite(sec)) return null;
-      return Math.round(m*60+sec);
-    }
-    return null;
-  }
-  function fmtPace(secPerKm){
-    if(!Number.isFinite(secPerKm) || secPerKm<=0) return "—";
-    const m=Math.floor(secPerKm/60);
-    const s=Math.round(secPerKm%60);
-    return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}/km`;
-  }
-  function renderCardioPage(){
-    $("c_date").value=todayISO();
-    const ref=todayISO();
-    const month = store.cardio.filter(c=>c.date && isSameMonth(c.date, ref));
-    const km = month.reduce((s,x)=>s+(Number(x.km)||0),0);
-    $("c_totalBar").textContent = month.length ? `This month: ${month.length} sessions • ${km.toFixed(1)} km` : "This month: 0 sessions";
-
-    const list=$("c_list");
-    list.innerHTML="";
-    const sorted=[...store.cardio].sort((a,b)=>a.date<b.date?1:-1);
-    sorted.forEach(e=>{
-      const km=Number(e.km)||0;
-      const sec=Number(e.sec)||0;
-      const pace = (km>0 && sec>0) ? fmtPace(sec/km) : "—";
-      const timeStr = e.timeStr || (sec?`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`:"—");
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">${e.type || "Cardio"} • ${km?km.toFixed(2):"—"} km</div>
-                       <div class="itemMeta">${e.date} • ${timeStr} • Pace ${pace}</div>
-                       ${e.notes?`<div class="itemBody">${e.notes}</div>`:""}`;
-      const acts=document.createElement("div"); acts.className="itemActions";
-      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-      b1.onclick=()=>{c_edit=e.id; $("c_date").value=e.date; $("c_type").value=e.type||"Run"; $("c_km").value=e.km??""; $("c_time").value=e.timeStr??""; $("c_notes").value=e.notes||""; $("c_cancel").style.display="inline-block"; $("c_save").textContent="Save";};
-      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-      b2.onclick=()=>{store.cardio=store.cardio.filter(x=>x.id!==e.id); save(); renderCardioPage(); renderDashboard();};
-      acts.append(b1,b2); div.append(acts); list.append(div);
-    });
-    if(!sorted.length){
-      const empty=document.createElement("div");
-      empty.className="item";
-      empty.innerHTML = `<div class="itemTitle">No cardio yet</div><div class="itemMeta">Add a run/session above</div>`;
-      list.append(empty);
-    }
-  }
-  $("c_cancel").addEventListener("click", ()=>{
-    c_edit=null; $("c_date").value=todayISO(); $("c_type").value="Run"; $("c_km").value=""; $("c_time").value=""; $("c_notes").value="";
-    $("c_cancel").style.display="none"; $("c_save").textContent="Add";
-  });
-  $("c_save").addEventListener("click", ()=>{
-    const date=$("c_date").value||todayISO();
-    const type=$("c_type").value||"Run";
-    const km = $("c_km").value.trim()===""?undefined:Number($("c_km").value);
-    if(km!=null && (!Number.isFinite(km) || km<=0)){alert("Enter a valid distance");return;}
-    const timeStr=$("c_time").value.trim();
-    const sec=parseTimeToSec(timeStr);
-    if(timeStr && sec==null){alert("Time should be like 25:30");return;}
-    const notes=$("c_notes").value.trim();
-    const payload={date,type,km:Number.isFinite(km)?km:undefined,timeStr:timeStr||undefined,sec:Number.isFinite(sec)?sec:undefined,notes:notes||undefined};
-    if(c_edit) store.cardio=store.cardio.map(x=>x.id===c_edit?({...x,...payload}):x);
-    else store.cardio.unshift({id:uid(),...payload});
-    save();
-    $("c_cancel").click();
-    renderCardioPage(); renderDashboard();
-  });
-
   // --- Workouts page ---
   const dayGrid=$("dayGrid");
   const workoutDaysView=$("workoutDaysView");
@@ -1335,38 +1097,6 @@ textarea{min-height:110px;resize:vertical}
     renderSetTable();
   });
 
-
-  // Add/remove exercises on the fly (updates the template day + this session)
-  $("wo_add_ex").addEventListener("click", ()=>{
-    const day=findDay(activeDayId);
-    if(!day){alert("Select a day first");return;}
-    const name=prompt("New exercise name:");
-    if(!name) return;
-    const clean=name.trim();
-    if(!clean) return;
-    if((day.exercises||[]).some(e=>e.name.toLowerCase()===clean.toLowerCase())){alert("That exercise already exists");return;}
-    day.exercises = [...(day.exercises||[]), {name:clean, defaultSets:3}];
-    currentSession.exercises.push({name:clean, sets:[{reps:"",kg:""},{reps:"",kg:""},{reps:"",kg:""}]});
-    save();
-    activeExName = clean;
-    updateTabs(day);
-    $("exTitle").textContent = activeExName;
-    renderSetTable();
-  });
-
-  $("wo_del_ex").addEventListener("click", ()=>{
-    const day=findDay(activeDayId);
-    if(!day || !activeExName){alert("Pick an exercise first");return;}
-    if(!confirm(`Remove "${activeExName}" from this workout day?`)) return;
-    day.exercises = (day.exercises||[]).filter(e=>e.name!==activeExName);
-    currentSession.exercises = (currentSession.exercises||[]).filter(e=>e.name!==activeExName);
-    activeExName = day.exercises?.[0]?.name || null;
-    save();
-    updateTabs(day);
-    $("exTitle").textContent = activeExName || "Exercise";
-    renderSetTable();
-  });
-
   $("wo_save").addEventListener("click", ()=>{
     const day=findDay(activeDayId);
     if(!day) return;
@@ -1462,6 +1192,19 @@ textarea{min-height:110px;resize:vertical}
     $("manageDaysSheet").classList.remove("hidden");
   }
   $("manageDaysBtn").addEventListener("click", openManage);
+
+  // Quick edit for exercises while in a session
+  const editDayBtn = document.getElementById("wo_edit_day");
+  if(editDayBtn){
+    editDayBtn.addEventListener("click", ()=>{
+      openManage();
+      // Try to preselect the active day in the dropdown
+      try{
+        if(activeDayId) document.getElementById("day_select").value = activeDayId;
+      }catch(e){}
+    });
+  }
+
   $("closeManage").addEventListener("click", ()=> $("manageDaysSheet").classList.add("hidden"));
 
   function showEditor(mode){
@@ -1534,8 +1277,6 @@ textarea{min-height:110px;resize:vertical}
   renderMealsPage();
   renderWeightPage();
   renderProgressPage();
-  renderStepsPage();
-  renderCardioPage();
 })();
 </script>
 
