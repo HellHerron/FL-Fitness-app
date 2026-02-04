@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#101036"/>
+<title>Fitness Log</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#0d102b;
+  --card:#12163a;
+  --card2:#161c46;
+  --text:#f6f7ff;
+  --muted:#b8c0e6;
+  --line:rgba(255,255,255,.10);
+  --shadow:0 18px 55px rgba(0,0,0,.35);
+  --r1:22px; --r2:16px;
+  --grad1:linear-gradient(135deg,#6a11cb 0%,#ff512f 55%,#f09819 100%);
+  --grad2:linear-gradient(135deg,#00c6ff 0%,#0072ff 100%);
+  --grad3:linear-gradient(135deg,#00b09b 0%,#96c93d 100%);
+  --grad4:linear-gradient(135deg,#ff416c 0%,#ff4b2b 100%);
+  --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  --safeTop:env(safe-area-inset-top,0px); --safeBot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{height:100%;overscroll-behavior:none}
+body{
+  margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  color:var(--text);
+  background:
+    radial-gradient(900px 520px at 12% 0%, rgba(106,17,203,.30), transparent 55%),
+    radial-gradient(900px 520px at 88% 5%, rgba(255,81,47,.22), transparent 60%),
+    radial-gradient(900px 520px at 50% 85%, rgba(0,198,255,.12), transparent 60%),
+    linear-gradient(180deg, #090a1c, var(--bg));
+  -webkit-font-smoothing:antialiased;
+}
+.app{min-height:100dvh;display:flex;flex-direction:column;padding-top:var(--safeTop);padding-bottom:var(--safeBot)}
+.wrap{max-width:980px;width:100%;margin:0 auto;padding:10px 12px 12px;flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:20;padding:10px 0 8px;backdrop-filter:blur(10px)}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:38px;height:38px;border-radius:16px;flex:0 0 auto;background:var(--grad1);box-shadow:0 18px 36px rgba(255,81,47,.18);border:1px solid rgba(255,255,255,.14)}
+h1{font-size:16px;margin:0;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{margin:2px 0 0;color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:var(--text);
+  padding:9px 11px;border-radius:var(--r2);cursor:pointer;font-weight:850;font-size:12px;
+  box-shadow:0 1px 0 rgba(255,255,255,.10) inset}
+.btn:hover{background:rgba(255,255,255,.10)}
+.btn.primary{background:var(--grad1);color:#101429;border-color:rgba(255,255,255,.18);box-shadow:0 16px 32px rgba(240,152,25,.16)}
+.btn.ghost{background:transparent}
+.btn.small{padding:7px 9px;font-size:12px;border-radius:14px}
+.card{background:rgba(18,22,58,.86);border:1px solid var(--line);border-radius:var(--r1);padding:12px;box-shadow:var(--shadow)}
+.card.slim{padding:10px}
+.title{font-weight:950;font-size:14px;letter-spacing:-.01em}
+.small{font-size:12px;color:var(--muted);line-height:1.35}
+.divider{height:1px;background:rgba(255,255,255,.10);margin:10px 0}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px}
+input,textarea,select{width:100%;padding:10px 10px;border-radius:var(--r2);border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);color:var(--text);font-size:14px;outline:none}
+textarea{min-height:110px;resize:vertical}
+.page{flex:1;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.hidden{display:none!important}
+.scrollArea{flex:1;overflow:auto;padding-bottom:6px}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{background:rgba(22,28,70,.86);border:1px solid rgba(255,255,255,.10);border-radius:var(--r1);padding:12px}
+.item .t{font-weight:900}
+.item .m{color:var(--muted);font-size:12px;margin-top:3px}
+.item .b{white-space:pre-wrap;font-size:13px;margin-top:10px;line-height:1.35}
+.actions{display:flex;gap:8px;margin-top:10px}
+.kpiRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.kpi{background:rgba(22,28,70,.86);border:1px solid rgba(255,255,255,.10);border-radius:18px;padding:10px;min-width:0}
+.kpi .l{font-size:10px;color:var(--muted);font-weight:900}
+.kpi .v{font-size:16px;font-weight:950;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .s{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tileGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.tile{padding:14px;border-radius:var(--r1);border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  box-shadow:0 14px 32px rgba(0,0,0,.25);cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:120px;position:relative;overflow:hidden}
+.tile::after{content:"";position:absolute;inset:-2px;opacity:.45;filter:blur(18px);transform:translateY(24px);pointer-events:none}
+.tile.w::after{background:var(--grad2)}
+.tile.m::after{background:var(--grad1)}
+.tile.wo::after{background:var(--grad3)}
+.tile.p::after{background:var(--grad4)}
+.tile .iconWrap{width:40px;height:40px;border-radius:16px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.10);z-index:2}
+.tile .label{font-weight:950;z-index:2}
+.tile .desc{font-size:12px;color:var(--muted);line-height:1.35;z-index:2}
+
+.ringRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+@media (max-width:420px){.ringRow{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.ringCard{background:rgba(22,28,70,.86);border:1px solid rgba(255,255,255,.10);border-radius:20px;padding:12px;display:flex;gap:10px;align-items:center;min-width:0}
+.ring{--p:0;--col:rgba(245,158,11,.95);width:70px;height:70px;border-radius:999px;
+  background:conic-gradient(var(--col) calc(var(--p)*1turn), rgba(255,255,255,.12) 0);
+  position:relative;flex:0 0 auto}
+.ring::after{content:"";position:absolute;inset:7px;background:rgba(18,22,58,.96);border-radius:999px;border:1px solid rgba(255,255,255,.08)}
+.ringCenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;font-weight:950;line-height:1.05}
+.ringCenter .big{font-size:14px}
+.ringCenter .tiny{font-size:10px;color:var(--muted);font-weight:900;margin-top:2px}
+.ringText{min-width:0}
+.ringText .label{font-weight:950}
+.ringText .sub{font-size:12px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.dayGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dayTile{padding:14px;border-radius:var(--r1);border:1px solid rgba(255,255,255,.14);
+  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  box-shadow:0 14px 32px rgba(0,0,0,.25);cursor:pointer;display:flex;flex-direction:column;gap:8px;min-height:120px;position:relative;overflow:hidden}
+.dayTile::after{content:"";position:absolute;inset:-2px;opacity:.35;filter:blur(18px);transform:translateY(28px);pointer-events:none;background:var(--grad3)}
+.dayIcon{width:44px;height:44px;border-radius:18px;border:2px solid rgba(255,255,255,.22);background:rgba(255,255,255,.10);
+  display:grid;place-items:center;font-weight:950;color:rgba(255,255,255,.92);z-index:2}
+.dayTile.scheduled .dayIcon{border-color:rgba(34,197,94,.95);box-shadow:0 0 0 4px rgba(34,197,94,.16);background:rgba(34,197,94,.12)}
+.exRow{display:flex;gap:8px;flex-wrap:wrap}
+.exTab{padding:8px 10px;border-radius:14px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);cursor:pointer;font-weight:850;font-size:12px}
+.exTab.active{background:rgba(255,81,47,.16);border-color:rgba(255,81,47,.55)}
+.table{width:100%;border-collapse:separate;border-spacing:0;border:1px solid rgba(255,255,255,.14);border-radius:16px;background:rgba(255,255,255,.04);overflow:hidden}
+.table th,.table td{padding:9px 9px;border-bottom:1px solid rgba(255,255,255,.10);font-size:13px;text-align:left;vertical-align:middle}
+.table th{font-size:11px;color:var(--muted);font-weight:900;background:rgba(255,255,255,.04)}
+.table tr:last-child td{border-bottom:none}
+.numInput{width:82px;padding:9px;border-radius:14px;border:1px solid rgba(255,255,255,.14);font-size:13px;background:rgba(255,255,255,.06);color:var(--text)}
+.numInput.small{width:70px}
+.restBar{flex:0 0 auto;position:sticky;bottom:0;z-index:15;margin-top:10px;padding:12px;border:1px solid rgba(255,255,255,.14);
+  background:rgba(18,22,58,.92);border-radius:18px;box-shadow:var(--shadow);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.restTime{font-weight:950;font-size:18px}
+.restHint{font-size:12px;color:var(--muted);font-weight:850}
+
+.sheet{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-end;z-index:40;padding:16px 12px calc(16px + var(--safeBot))}
+.sheet.open{display:flex}
+.sheetCard{width:min(980px,100%);margin:0 auto;background:rgba(18,22,58,.98);border:1px solid rgba(255,255,255,.14);border-radius:24px;box-shadow:var(--shadow);padding:12px}
+.sheetHeader{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.sheetGrid{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+@media (min-width:720px){.sheetGrid.cols2{grid-template-columns:1fr 1fr}.sheetGrid.cols3{grid-template-columns:1fr 1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="wrap">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div style="min-width:0">
+          <h1 id="pageTitle">Dashboard</h1>
+          <div class="sub" id="pageSub">Local-only • your phone</div>
+        </div>
+      </div>
+      <div class="row">
+        <button class="btn ghost hidden" id="backBtn">Back</button>
+        <button class="btn small" id="openSettings">Settings</button>
+        <button class="btn primary" id="copy7">Copy 7d</button>
+      </div>
+    </div>
+
+    <section id="page-home" class="page">
+      <div class="card">
+        <div class="title" id="helloLine">Dashboard</div>
+        <div class="small" id="goalLine">Set your targets in Settings.</div>
+        <div class="divider"></div>
+
+        <div class="kpiRow">
+          <div class="kpi"><div class="l">Latest weight</div><div class="v" id="kpiWeight">—</div><div class="s" id="kpiWeightDate">No entries</div></div>
+          <div class="kpi"><div class="l">Gym days</div><div class="v" id="kpiGymDays">0</div><div class="s">This month</div></div>
+          <div class="kpi"><div class="l">Targets</div><div class="v" id="kpiAdhere">—</div><div class="s" id="kpiAdhereSub">Log meals to score</div></div>
+        </div>
+
+        <div class="ringRow" aria-label="Today's targets">
+          <div class="ringCard">
+            <div class="ring" id="calRing"><div class="ringCenter"><div class="big" id="calBig">—</div><div class="tiny">kcal</div></div></div>
+            <div class="ringText"><div class="label">Calories</div><div class="sub" id="calSub">Set target in Settings</div></div>
+          </div>
+          <div class="ringCard">
+            <div class="ring" id="protRing"><div class="ringCenter"><div class="big" id="protBig">—</div><div class="tiny">g</div></div></div>
+            <div class="ringText"><div class="label">Protein</div><div class="sub" id="protSub">Set target in Settings</div></div>
+          </div>
+          <div class="ringCard">
+            <div class="ring" id="lossRing"><div class="ringCenter"><div class="big" id="lossBig">—</div><div class="tiny">kg/wk</div></div></div>
+            <div class="ringText"><div class="label">Expected loss</div><div class="sub" id="lossSub">Needs 7 days of calories</div></div>
+          </div>
+        </div>
+
+        <div class="tileGrid" style="margin-top:10px">
+          <div class="tile w" data-nav="weight"><div class="iconWrap">⚖️</div><div class="label">Weight</div><div class="desc">Weigh-ins</div></div>
+          <div class="tile m" data-nav="meals"><div class="iconWrap">🍽️</div><div class="label">Meals</div><div class="desc">Calories / protein</div></div>
+          <div class="tile wo" data-nav="workouts"><div class="iconWrap">🏋️</div><div class="label">Workouts</div><div class="desc">Templates + rest timer</div></div>
+          <div class="tile p" data-nav="progress"><div class="iconWrap">📈</div><div class="label">Progress</div><div class="desc">Waist / notes</div></div>
+        </div>
+      </div>
+
+      <div class="small" style="text-align:center">Tip: use “Copy 7d” and paste into ChatGPT for coaching.</div>
+    </section>
+
+    <section id="page-weight" class="page hidden">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="title">Weight</div><div class="small">Log weigh-ins</div></div>
+          <button class="btn small" id="w_clear">Clear</button>
+        </div>
+        <div class="divider"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label>Date</label><input id="w_date" type="date"></div>
+          <div><label>Weight (kg)</label><input id="w_kg" inputmode="decimal" placeholder="84.5"></div>
+        </div>
+        <div style="margin-top:10px"><label>Notes</label><input id="w_notes" placeholder="sleep, stress, salt…"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn small" id="w_cancel" style="display:none">Cancel</button>
+          <button class="btn primary" id="w_save" style="flex:1">Add</button>
+        </div>
+      </div>
+      <div class="scrollArea"><div class="list" id="w_list"></div></div>
+    </section>
+
+    <section id="page-meals" class="page hidden">
+      <div class="card">
+        <div class="title">Meals</div><div class="small">Updates dashboard rings</div>
+        <div class="divider"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label>Date</label><input id="m_date" type="date"></div>
+          <div><label>Title</label><input id="m_title" placeholder="Breakfast"></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+          <div><label>Calories</label><input id="m_cals" inputmode="numeric" placeholder="650"></div>
+          <div><label>Protein (g)</label><input id="m_prot" inputmode="numeric" placeholder="45"></div>
+        </div>
+        <div class="small" id="m_todayTotals" style="margin-top:8px"></div>
+        <div style="margin-top:10px"><label>What you ate</label><textarea id="m_details"></textarea></div>
+        <div style="margin-top:10px"><label>Coach notes (optional)</label><textarea id="m_coach"></textarea></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn small" id="m_cancel" style="display:none">Cancel</button>
+          <button class="btn primary" id="m_save" style="flex:1">Add</button>
+        </div>
+      </div>
+      <div class="scrollArea">
+        <div class="card slim"><div class="title">Meals – Suggested Improvements</div><textarea id="coach_meals" style="margin-top:10px;min-height:110px"></textarea></div>
+        <div class="list" id="m_list" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <section id="page-workouts" class="page hidden">
+      <div class="card" id="wo_days_card">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="title">Workout Days</div><div class="small">Green ring = scheduled today</div></div>
+          <button class="btn small" id="day_manage">Manage</button>
+        </div>
+      </div>
+      <div class="scrollArea" id="wo_days_scroll"><div class="dayGrid" id="dayGrid"></div></div>
+
+      <div class="card hidden" id="wo_session_card">
+        <div class="row" style="justify-content:space-between">
+          <div style="min-width:0"><div class="title" id="wo_day_title">Workout</div><div class="small" id="wo_prev_label"></div></div>
+          <div class="row"><button class="btn small" id="wo_back_days">Days</button><button class="btn small" id="wo_load_prev">Load last</button></div>
+        </div>
+        <div class="divider"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label>Date</label><input id="wo_date" type="date"></div>
+          <div><label>Notes</label><input id="wo_session_notes" placeholder="energy, cues"></div>
+        </div>
+        <div style="margin-top:10px"><button class="btn primary" id="wo_save" style="width:100%">Save workout</button></div>
+      </div>
+
+      <div class="scrollArea hidden" id="wo_session_scroll">
+        <div class="card slim">
+          <div class="title">Exercises</div><div class="small" style="margin-top:6px">Locked columns show last session.</div>
+          <div class="exRow" id="exTabs" style="margin-top:10px"></div>
+          <div id="setArea" class="hidden" style="margin-top:10px">
+            <div class="divider"></div>
+            <div class="row" style="justify-content:space-between">
+              <div><div class="title" id="exTitle">Exercise</div><div class="small">Last session is locked</div></div>
+              <div class="row"><button class="btn small" id="addSet">+ Set</button><button class="btn small" id="removeSet">− Set</button></div>
+            </div>
+            <div style="margin-top:10px">
+              <table class="table">
+                <thead><tr><th style="width:46px">Set</th><th>Last reps</th><th>Last kg</th><th>Reps</th><th>Kg</th></tr></thead>
+                <tbody id="setTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="card slim" style="margin-top:10px"><div class="title">Coach notes (optional)</div><textarea id="wo_coach" placeholder="Advice for this workout" style="margin-top:10px;min-height:110px"></textarea></div>
+        <div class="restBar" id="restBar"><div><div class="restHint">Rest timer</div><div class="restTime" id="restTime">03:00</div></div><div class="row"><button class="btn small" id="restStart">Start</button><button class="btn small" id="restReset">Reset</button></div></div>
+      </div>
+
+      <div class="card hidden" id="day_manage_card">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="title">Manage Workout Days</div><div class="small">One exercise per line (optional xN sets)</div></div>
+          <button class="btn small" id="day_manage_done">Done</button>
+        </div>
+        <div class="divider"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label>Workout day</label><select id="day_select"></select></div>
+          <div class="row" style="align-self:end"><button class="btn small" id="day_new" style="flex:1">New</button><button class="btn small" id="day_edit" style="flex:1">Edit</button><button class="btn small" id="day_delete" style="flex:1">Delete</button></div>
+        </div>
+        <div id="day_editor" class="item hidden" style="margin-top:10px">
+          <div class="t">Day editor</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+            <div><label>Name</label><input id="day_name" placeholder="Push A"></div>
+            <div><label>Notes</label><input id="day_notes" placeholder="1–2 RIR"></div>
+          </div>
+          <div class="divider"></div>
+          <div class="title">Scheduled weekdays</div>
+          <div class="row" id="weekdayChecks" style="margin-top:10px"></div>
+          <div class="divider"></div>
+          <div><label>Exercises</label><textarea id="day_exercises" placeholder="Bench Press x3\nIncline DB Press x3"></textarea></div>
+          <div class="row" style="margin-top:10px"><button class="btn small" id="day_cancel" style="flex:1">Cancel</button><button class="btn primary" id="day_save" style="flex:1">Save day</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-progress" class="page hidden">
+      <div class="card">
+        <div class="title">Progress</div><div class="small">Waist + notes</div>
+        <div class="divider"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label>Date</label><input id="p_date" type="date"></div>
+          <div><label>Waist (cm)</label><input id="p_waist" inputmode="numeric"></div>
+        </div>
+        <div style="margin-top:10px"><label>Photos</label><input id="p_photos"></div>
+        <div style="margin-top:10px"><label>Notes</label><textarea id="p_notes"></textarea></div>
+        <div style="margin-top:10px"><label>Coach notes</label><textarea id="p_coach"></textarea></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn small" id="p_cancel" style="display:none">Cancel</button>
+          <button class="btn primary" id="p_save" style="flex:1">Add</button>
+        </div>
+      </div>
+      <div class="scrollArea">
+        <div class="card slim"><div class="title">Progress – Suggested Improvements</div><textarea id="coach_progress" style="margin-top:10px;min-height:110px"></textarea></div>
+        <div class="list" id="p_list" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="sheet" id="settingsSheet" aria-hidden="true">
+    <div class="sheetCard">
+      <div class="sheetHeader">
+        <div><div class="title">Settings</div><div class="small">Targets + profile</div></div>
+        <button class="btn small" id="closeSettings">Close</button>
+      </div>
+      <div class="divider"></div>
+      <div class="title">Targets</div>
+      <div class="sheetGrid cols3">
+        <div><label>Calories/day</label><input id="t_cal" inputmode="numeric"></div>
+        <div><label>Protein/day (g)</label><input id="t_pro" inputmode="numeric"></div>
+        <div style="align-self:end"><button class="btn primary" style="width:100%" id="saveTargets">Save</button></div>
+      </div>
+      <div class="divider"></div>
+      <div class="title">Profile</div>
+      <div class="sheetGrid cols3">
+        <div><label>Age</label><input id="age" inputmode="numeric"></div>
+        <div><label>Sex</label><select id="sex"><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div><label>Height (cm)</label><input id="heightCm" inputmode="numeric" placeholder="178"></div>
+        <div><label>Weight (kg)</label><input id="weightKg" inputmode="decimal" placeholder="84.5"></div>
+        <div><label>Gym days/week</label><input id="gymDays" inputmode="numeric" placeholder="4"></div>
+        <div><label>Goal text</label><input id="goal"></div>
+      </div>
+      <button class="btn primary" style="width:100%; margin-top:10px" id="saveProfile">Save profile</button>
+      <div class="divider"></div>
+      <div class="small">Local-only: everything stays on this device.</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(()=> {
+  const APP_KEY="fitness_log_vibrant_local_v1";
+  const todayISO=()=>new Date().toISOString().slice(0,10);
+  const parseISO=(d)=>new Date(d+"T00:00:00");
+  const uid=()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
+  const $=(id)=>document.getElementById(id);
+  const safeParse=(raw)=>{try{return JSON.parse(raw)}catch{return null}};
+  const isSameMonth=(d,ref)=>{const a=parseISO(d),b=parseISO(ref);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth();};
+
+  const defaultStore=()=>({
+    profile:{age:30,sex:"male",heightCm:178,weightKg:84.5,gymDays:4,goal:"75kg with visible six-pack, then lean gain"},
+    targets:{calories:2200,proteinG:170},
+    weights:[], meals:[], progress:[],
+    coach:{meals:"",workouts:"",progress:""},
+    workoutDays:[
+      {id:"push",name:"Push",notes:"",scheduled:[1,4],exercises:[{name:"Bench Press",defaultSets:3},{name:"Incline DB Press",defaultSets:3},{name:"Cable Fly",defaultSets:2},{name:"Triceps Pushdown",defaultSets:3}]},
+      {id:"pull",name:"Pull",notes:"",scheduled:[2,5],exercises:[{name:"Pull-up / Lat Pulldown",defaultSets:3},{name:"Row",defaultSets:3},{name:"Rear Delt Fly",defaultSets:2},{name:"Biceps Curl",defaultSets:3}]},
+      {id:"legs",name:"Legs",notes:"",scheduled:[3,6],exercises:[{name:"Squat",defaultSets:3},{name:"RDL",defaultSets:3},{name:"Leg Press",defaultSets:3},{name:"Leg Curl",defaultSets:3},{name:"Calf Raise",defaultSets:3}]}
+    ],
+    workouts:[]
+  });
+
+  let store = safeParse(localStorage.getItem(APP_KEY)) || defaultStore();
+  const save=()=>localStorage.setItem(APP_KEY, JSON.stringify(store));
+
+  // Navigation
+  const pages={home:$("page-home"), weight:$("page-weight"), meals:$("page-meals"), workouts:$("page-workouts"), progress:$("page-progress")};
+  const pageTitle=$("pageTitle"), pageSub=$("pageSub"), backBtn=$("backBtn");
+  let current="home";
+  function setPage(name){
+    current=name;
+    Object.entries(pages).forEach(([k,el])=>el.classList.toggle("hidden",k!==name));
+    backBtn.classList.toggle("hidden",name==="home");
+    pageTitle.textContent = name==="home" ? "Dashboard" : name.charAt(0).toUpperCase()+name.slice(1);
+    pageSub.textContent = name==="home" ? "Local-only • your phone" : "Back to dashboard";
+    if(name==="home") renderDashboard();
+    if(name==="workouts"){ renderWorkoutDays(); showWorkoutDaysView(); }
+  }
+  backBtn.addEventListener("click",()=>setPage("home"));
+  document.querySelectorAll("[data-nav]").forEach(el=>el.addEventListener("click",()=>setPage(el.getAttribute("data-nav"))));
+
+  // Settings sheet
+  const sheet=$("settingsSheet");
+  $("openSettings").addEventListener("click",()=>{sheet.classList.add("open"); sheet.setAttribute("aria-hidden","false"); fillSettings();});
+  $("closeSettings").addEventListener("click",()=>{sheet.classList.remove("open"); sheet.setAttribute("aria-hidden","true");});
+  sheet.addEventListener("click",(e)=>{ if(e.target===sheet){sheet.classList.remove("open"); sheet.setAttribute("aria-hidden","true");} });
+
+  // Copy 7 days
+  function buildSummary(){
+    const today=todayISO();
+    const in7=(d)=>{const a=parseISO(d); const b=parseISO(today); return (b-a)/86400000 <= 6;};
+    const weights=store.weights.filter(w=>in7(w.date)).sort((a,b)=>a.date<b.date?1:-1);
+    const meals=store.meals.filter(m=>in7(m.date)).sort((a,b)=>a.date<b.date?1:-1);
+    const workouts=store.workouts.filter(w=>in7(w.date)).sort((a,b)=>a.date<b.date?1:-1);
+    const progress=store.progress.filter(p=>in7(p.date)).sort((a,b)=>a.date<b.date?1:-1);
+    const calsTotal=meals.reduce((s,m)=>s+(m.calories||0),0);
+    const protTotal=meals.reduce((s,m)=>s+(m.proteinG||0),0);
+    const weightsList=weights.length?weights.map(w=>`- ${w.date}: ${Number(w.weightKg).toFixed(1)}kg`).join("\n"):"- (none)";
+    const workoutsList=workouts.length?workouts.map(w=>`- ${w.date}: ${w.title||"Workout"}`).join("\n"):"- (none)";
+    const mealsList=meals.length?meals.map(m=>`- ${m.date}: ${m.title} • ${m.calories??"?"}kcal • ${m.proteinG??"?"}g`).join("\n"):"- (none)";
+    const progressList=progress.length?progress.map(p=>`- ${p.date}: waist ${p.waistCm??"?"}cm`).join("\n"):"- (none)";
+    return [`Last 7 Days Summary (ending ${today})`,``,`WEIGHTS:`,weightsList,``,`WORKOUTS:`,workoutsList,``,`MEALS:`,mealsList,``,`Totals: ${calsTotal} kcal, ${protTotal} g protein`,``,`PROGRESS:`,progressList].join("\n");
+  }
+  $("copy7").addEventListener("click", async ()=>{
+    const text=buildSummary();
+    try{ await navigator.clipboard.writeText(text); alert("Copied! Paste into ChatGPT."); }
+    catch{ prompt("Copy this text:", text); }
+  });
+
+  // Dashboard helpers
+  function mslBmrKgCm(age, sex, heightCm, weightKg){
+    const s = sex==="male" ? 5 : -161;
+    return 10*weightKg + 6.25*heightCm - 5*age + s;
+  }
+  function activityFactor(gymDays){
+    if(gymDays<=1) return 1.35;
+    if(gymDays==2) return 1.45;
+    if(gymDays==3) return 1.55;
+    if(gymDays==4) return 1.60;
+    if(gymDays==5) return 1.70;
+    return 1.75;
+  }
+  function ringSet(el, p, col){
+    el.style.setProperty("--p", String(Math.max(0,Math.min(1,p))));
+    el.style.setProperty("--col", col);
+  }
+  function renderDashboard(){
+    $("helloLine").textContent = "Welcome back!";
+    $("goalLine").textContent = `Goal: ${store.profile.goal}`;
+    const sortedW=[...store.weights].sort((a,b)=>a.date<b.date?1:-1);
+    const last=sortedW[0];
+    $("kpiWeight").textContent = last ? `${Number(last.weightKg).toFixed(1)}kg` : "—";
+    $("kpiWeightDate").textContent = last ? last.date : "No entries";
+
+    const ref=todayISO();
+    const gymDates=new Set(store.workouts.filter(w=>isSameMonth(w.date,ref)).map(w=>w.date));
+    $("kpiGymDays").textContent = String(gymDates.size);
+
+    const tC=Number(store.targets?.calories||0), tP=Number(store.targets?.proteinG||0);
+    const daily=new Map();
+    store.meals.filter(m=>isSameMonth(m.date,ref)).forEach(m=>{
+      const cur=daily.get(m.date)||{cals:0,prot:0,hasC:false,hasP:false};
+      if(m.calories!=null&&m.calories!==""){cur.cals+=Number(m.calories);cur.hasC=true;}
+      if(m.proteinG!=null&&m.proteinG!==""){cur.prot+=Number(m.proteinG);cur.hasP=true;}
+      daily.set(m.date,cur);
+    });
+    let eligible=0, hit=0;
+    for(const v of daily.values()){
+      const cEligible=tC>0&&v.hasC, pEligible=tP>0&&v.hasP;
+      if(!cEligible&&!pEligible) continue;
+      eligible++;
+      const cOk=!cEligible?true:(v.cals<=tC);
+      const pOk=!pEligible?true:(v.prot>=tP);
+      if(cOk&&pOk) hit++;
+    }
+    $("kpiAdhere").textContent = eligible ? `${Math.round(hit/eligible*100)}%` : "—";
+    $("kpiAdhereSub").textContent = eligible ? `${hit}/${eligible} days` : "Log meals to score";
+
+    const t=todayISO();
+    const todays=store.meals.filter(m=>m.date===t);
+    const cals=todays.reduce((s,m)=>s+(Number(m.calories)||0),0);
+    const prot=todays.reduce((s,m)=>s+(Number(m.proteinG)||0),0);
+
+    const calRing=$("calRing"), calBig=$("calBig"), calSub=$("calSub");
+    if(tC>0){
+      const ratio=cals/tC;
+      const p=Math.max(0,Math.min(1,ratio));
+      let col="rgba(245,158,11,.95)";
+      if(ratio>=0.85 && ratio<=1.10) col="rgba(34,197,94,.95)";
+      if(ratio>1.10) col="rgba(239,68,68,.95)";
+      ringSet(calRing,p,col);
+      const left=Math.round(tC-cals);
+      if(left>=0){calBig.textContent=String(left); calSub.textContent=`${cals} / ${tC} kcal • ${left} left`;}
+      else{calBig.textContent=String(Math.abs(left)); calSub.textContent=`${cals} / ${tC} kcal • ${Math.abs(left)} over`;}
+    }else{ringSet(calRing,0,"rgba(245,158,11,.95)"); calBig.textContent="—"; calSub.textContent="Set calorie target in Settings";}
+
+    const protRing=$("protRing"), protBig=$("protBig"), protSub=$("protSub");
+    if(tP>0){
+      const ratio=prot/tP;
+      const p=Math.max(0,Math.min(1,ratio));
+      let col="rgba(239,68,68,.95)";
+      if(ratio>=0.70 && ratio<1.00) col="rgba(245,158,11,.95)";
+      if(ratio>=1.00) col="rgba(34,197,94,.95)";
+      ringSet(protRing,p,col);
+      const rem=Math.round(tP-prot);
+      if(rem>0){protBig.textContent=String(rem); protSub.textContent=`${prot} / ${tP} g • ${rem} remaining`;}
+      else{protBig.textContent="0"; protSub.textContent=`${prot} / ${tP} g • target hit`; }
+    }else{ringSet(protRing,0,"rgba(239,68,68,.95)"); protBig.textContent="—"; protSub.textContent="Set protein target in Settings";}
+
+    const lossRing=$("lossRing"), lossBig=$("lossBig"), lossSub=$("lossSub");
+    const byDate=new Map();
+    store.meals.forEach(m=>{
+      if(!m.date) return;
+      const cur=byDate.get(m.date)||{cals:0,has:false};
+      if(m.calories!=null && m.calories!==""){cur.cals+=Number(m.calories); cur.has=true;}
+      byDate.set(m.date,cur);
+    });
+    const dates=[...byDate.keys()].sort();
+    const last7 = dates.filter(d=>byDate.get(d).has).slice(-7);
+    if(last7.length>=7){
+      const avgCals = Math.round(last7.reduce((s,d)=>s+byDate.get(d).cals,0)/7);
+      const p = store.profile;
+      const bmr = mslBmrKgCm(Number(p.age)||30, p.sex||"male", Number(p.heightCm)||178, Number(p.weightKg)|| (last?Number(last.weightKg):84.5));
+      const tdee = Math.round(bmr * activityFactor(Number(p.gymDays)||4));
+      const deficitPerDay = tdee - avgCals;
+      const kgPerWeek = (deficitPerDay*7) / 7700;
+      const abs = Math.max(0, Math.min(1, Math.abs(kgPerWeek)/1.0));
+      let col="rgba(245,158,11,.95)";
+      if(kgPerWeek < 0) col="rgba(239,68,68,.95)";
+      else if(kgPerWeek >= 0.25 && kgPerWeek <= 0.75) col="rgba(34,197,94,.95)";
+      else if(kgPerWeek > 0.75) col="rgba(239,68,68,.95)";
+      ringSet(lossRing, abs, col);
+      lossBig.textContent = (Math.round(kgPerWeek*100)/100).toFixed(2);
+      const sign = kgPerWeek>=0 ? "loss" : "gain";
+      lossSub.textContent = `Avg cals: ${avgCals} • Est TDEE: ${tdee} • ${sign}/wk`;
+    }else{
+      ringSet(lossRing,0,"rgba(255,255,255,.16)");
+      lossBig.textContent="—";
+      lossSub.textContent="Needs 7 days of calories";
+    }
+  }
+
+  // Settings logic
+  function fillSettings(){
+    $("t_cal").value=store.targets.calories||"";
+    $("t_pro").value=store.targets.proteinG||"";
+    $("age").value=store.profile.age;
+    $("sex").value=store.profile.sex||"male";
+    $("heightCm").value=store.profile.heightCm;
+    $("weightKg").value=store.profile.weightKg;
+    $("gymDays").value=store.profile.gymDays;
+    $("goal").value=store.profile.goal;
+  }
+  $("saveTargets").addEventListener("click",()=>{
+    const c=Number($("t_cal").value), p=Number($("t_pro").value);
+    if(Number.isFinite(c)&&c>0) store.targets.calories=c;
+    if(Number.isFinite(p)&&p>0) store.targets.proteinG=p;
+    save(); alert("Saved targets."); renderAll();
+  });
+  $("saveProfile").addEventListener("click",()=>{
+    store.profile.age=Number($("age").value)||store.profile.age;
+    store.profile.sex=$("sex").value||store.profile.sex;
+    store.profile.heightCm=Number($("heightCm").value)||store.profile.heightCm;
+    store.profile.weightKg=Number($("weightKg").value)||store.profile.weightKg;
+    store.profile.gymDays=Math.max(0, Math.min(7, Number($("gymDays").value)||store.profile.gymDays));
+    store.profile.goal=$("goal").value.trim()||store.profile.goal;
+    save(); alert("Saved profile."); renderAll();
+  });
+
+  // Weight page
+  const w_date=$("w_date"), w_kg=$("w_kg"), w_notes=$("w_notes"), w_save=$("w_save"), w_cancel=$("w_cancel"), w_list=$("w_list");
+  let w_edit=null;
+  function resetWeightForm(){w_edit=null; w_date.value=todayISO(); w_kg.value=""; w_notes.value=""; w_cancel.style.display="none"; w_save.textContent="Add";}
+  $("w_clear").addEventListener("click", resetWeightForm);
+  w_cancel.addEventListener("click", resetWeightForm);
+  w_save.addEventListener("click",()=>{
+    const date=w_date.value||todayISO(); const kg=Number(w_kg.value);
+    if(!Number.isFinite(kg)||kg<=0){alert("Enter a valid weight");return;}
+    const notes=w_notes.value.trim();
+    if(w_edit) store.weights=store.weights.map(x=>x.id===w_edit?({...x,date,weightKg:kg,notes:notes||undefined}):x);
+    else store.weights.unshift({id:uid(),date,weightKg:kg,notes:notes||undefined});
+    store.profile.weightKg=kg;
+    save(); resetWeightForm(); renderAll();
+  });
+
+  // Meals page
+  const m_date=$("m_date"), m_title=$("m_title"), m_cals=$("m_cals"), m_prot=$("m_prot"), m_details=$("m_details"), m_coach=$("m_coach"),
+        m_save=$("m_save"), m_cancel=$("m_cancel"), m_list=$("m_list"), m_todayTotals=$("m_todayTotals"), coachMeals=$("coach_meals");
+  let m_edit=null;
+  function resetMealForm(){m_edit=null; m_date.value=todayISO(); m_title.value=""; m_cals.value=""; m_prot.value=""; m_details.value=""; m_coach.value=""; m_cancel.style.display="none"; m_save.textContent="Add";}
+  m_cancel.addEventListener("click", resetMealForm);
+  m_save.addEventListener("click",()=>{
+    const date=m_date.value||todayISO(); const title=m_title.value.trim();
+    if(!title){alert("Add a title");return;}
+    const calories=m_cals.value.trim()===""?undefined:Number(m_cals.value);
+    const proteinG=m_prot.value.trim()===""?undefined:Number(m_prot.value);
+    const payload={date,title,details:m_details.value.trim(),calories:(Number.isFinite(calories)?calories:undefined),proteinG:(Number.isFinite(proteinG)?proteinG:undefined),coachNotes:(m_coach.value.trim()||undefined)};
+    if(m_edit) store.meals=store.meals.map(x=>x.id===m_edit?({...x,...payload}):x);
+    else store.meals.unshift({id:uid(),...payload});
+    save(); resetMealForm(); renderAll();
+  });
+  coachMeals.addEventListener("input",()=>{store.coach.meals=coachMeals.value; save();});
+
+  // Progress page
+  const p_date=$("p_date"), p_waist=$("p_waist"), p_photos=$("p_photos"), p_notes=$("p_notes"), p_coach=$("p_coach"),
+        p_save=$("p_save"), p_cancel=$("p_cancel"), p_list=$("p_list"), coachProgress=$("coach_progress");
+  let p_edit=null;
+  function resetProgressForm(){p_edit=null; p_date.value=todayISO(); p_waist.value=""; p_photos.value=""; p_notes.value=""; p_coach.value=""; p_cancel.style.display="none"; p_save.textContent="Add";}
+  p_cancel.addEventListener("click", resetProgressForm);
+  p_save.addEventListener("click",()=>{
+    const date=p_date.value||todayISO();
+    const waist=p_waist.value.trim()===""?undefined:Number(p_waist.value);
+    const payload={date,waistCm:(Number.isFinite(waist)?waist:undefined),photos:(p_photos.value.trim()||undefined),notes:(p_notes.value.trim()||undefined),coachNotes:(p_coach.value.trim()||undefined)};
+    if(p_edit) store.progress=store.progress.map(x=>x.id===p_edit?({...x,...payload}):x);
+    else store.progress.unshift({id:uid(),...payload});
+    save(); resetProgressForm(); renderAll();
+  });
+  coachProgress.addEventListener("input",()=>{store.coach.progress=coachProgress.value; save();});
+
+  // Render lists helpers
+  const itemActions=(editFn,delFn)=>{
+    const wrap=document.createElement("div"); wrap.className="actions";
+    const e=document.createElement("button"); e.className="btn small"; e.textContent="Edit"; e.onclick=editFn;
+    const d=document.createElement("button"); d.className="btn small"; d.textContent="Delete"; d.style.background="rgba(239,68,68,.20)"; d.style.borderColor="rgba(239,68,68,.35)"; d.onclick=delFn;
+    wrap.append(e,d); return wrap;
+  };
+
+  function renderWeightsList(){
+    w_list.innerHTML="";
+    const sorted=[...store.weights].sort((a,b)=>a.date<b.date?1:-1);
+    if(!sorted.length){
+      const div=document.createElement("div"); div.className="item";
+      div.innerHTML=`<div class="t">No weigh-ins yet</div><div class="m">Add one above.</div>`;
+      w_list.appendChild(div); return;
+    }
+    sorted.forEach(e=>{
+      const div=document.createElement("div"); div.className="item";
+      div.innerHTML=`<div class="t">${Number(e.weightKg).toFixed(1)} kg</div><div class="m">${e.date}</div>${e.notes?`<div class="b">${e.notes}</div>`:""}`;
+      div.appendChild(itemActions(
+        ()=>{w_edit=e.id; w_date.value=e.date; w_kg.value=e.weightKg; w_notes.value=e.notes||""; w_cancel.style.display="inline-block"; w_save.textContent="Save";},
+        ()=>{store.weights=store.weights.filter(x=>x.id!==e.id); save(); renderAll();}
+      ));
+      w_list.appendChild(div);
+    });
+  }
+
+  function renderMealsList(){
+    m_list.innerHTML="";
+    const t=todayISO();
+    const todays=store.meals.filter(m=>m.date===t);
+    m_todayTotals.textContent=`Today: ${todays.length} meals • ${todays.reduce((s,m)=>s+(m.calories||0),0)} kcal • ${todays.reduce((s,m)=>s+(m.proteinG||0),0)} g protein`;
+    coachMeals.value=store.coach.meals||"";
+    const sorted=[...store.meals].sort((a,b)=>a.date<b.date?1:-1);
+    if(!sorted.length){
+      const div=document.createElement("div"); div.className="item";
+      div.innerHTML=`<div class="t">No meals yet</div><div class="m">Add one above.</div>`;
+      m_list.appendChild(div); return;
+    }
+    sorted.forEach(e=>{
+      const div=document.createElement("div"); div.className="item";
+      const meta=[]; if(e.calories!=null) meta.push(`${e.calories} kcal`); if(e.proteinG!=null) meta.push(`${e.proteinG} g`);
+      div.innerHTML=`<div class="t">${e.title}</div><div class="m">${e.date}${meta.length?` • ${meta.join(" • ")}`:""}</div>${e.details?`<div class="b">${e.details}</div>`:""}`;
+      div.appendChild(itemActions(
+        ()=>{m_edit=e.id; m_date.value=e.date; m_title.value=e.title; m_cals.value=(e.calories??""); m_prot.value=(e.proteinG??""); m_details.value=e.details||""; m_coach.value=e.coachNotes||""; m_cancel.style.display="inline-block"; m_save.textContent="Save";},
+        ()=>{store.meals=store.meals.filter(x=>x.id!==e.id); save(); renderAll();}
+      ));
+      m_list.appendChild(div);
+    });
+  }
+
+  function renderProgressList(){
+    p_list.innerHTML="";
+    coachProgress.value=store.coach.progress||"";
+    const sorted=[...store.progress].sort((a,b)=>a.date<b.date?1:-1);
+    if(!sorted.length){
+      const div=document.createElement("div"); div.className="item";
+      div.innerHTML=`<div class="t">No check-ins yet</div><div class="m">Add one above.</div>`;
+      p_list.appendChild(div); return;
+    }
+    sorted.forEach(e=>{
+      const div=document.createElement("div"); div.className="item";
+      const parts=[]; if(e.waistCm!=null) parts.push(`Waist: ${e.waistCm}cm`); if(e.photos) parts.push(`Photos: ${e.photos}`); if(e.notes) parts.push(`Notes:\n${e.notes}`);
+      div.innerHTML=`<div class="t">Check-in</div><div class="m">${e.date}${e.waistCm!=null?` • Waist ${e.waistCm}cm`:""}</div>${parts.length?`<div class="b">${parts.join("\n\n")}</div>`:""}`;
+      div.appendChild(itemActions(
+        ()=>{p_edit=e.id; p_date.value=e.date; p_waist.value=(e.waistCm??""); p_photos.value=e.photos||""; p_notes.value=e.notes||""; p_coach.value=e.coachNotes||""; p_cancel.style.display="inline-block"; p_save.textContent="Save";},
+        ()=>{store.progress=store.progress.filter(x=>x.id!==e.id); save(); renderAll();}
+      ));
+      p_list.appendChild(div);
+    });
+  }
+
+  // Workouts
+  const woDaysCard=$("wo_days_card"), woSessionCard=$("wo_session_card"), dayManageCard=$("day_manage_card");
+  const woDaysScroll=$("wo_days_scroll"), woSessionScroll=$("wo_session_scroll");
+  const dayGrid=$("dayGrid");
+  const woDayTitle=$("wo_day_title"), woPrevLabel=$("wo_prev_label"), woDate=$("wo_date"), woSessionNotes=$("wo_session_notes"), woCoach=$("wo_coach");
+  const exTabs=$("exTabs"), setArea=$("setArea"), exTitle=$("exTitle"), setTbody=$("setTbody");
+  const addSetBtn=$("addSet"), removeSetBtn=$("removeSet");
+
+  let activeDayId=null, activeExName=null, currentSession=null, prevSession=null;
+
+  function showWorkoutDaysView(){woDaysCard.classList.remove("hidden");woDaysScroll.classList.remove("hidden");woSessionCard.classList.add("hidden");woSessionScroll.classList.add("hidden");dayManageCard.classList.add("hidden");}
+  function showWorkoutSessionView(){woDaysCard.classList.add("hidden");woDaysScroll.classList.add("hidden");dayManageCard.classList.add("hidden");woSessionCard.classList.remove("hidden");woSessionScroll.classList.remove("hidden");}
+  function showDayManageView(){woDaysCard.classList.add("hidden");woDaysScroll.classList.add("hidden");woSessionCard.classList.add("hidden");woSessionScroll.classList.add("hidden");dayManageCard.classList.remove("hidden");}
+  function weekdayToday(){return new Date().getDay();}
+  function isScheduledToday(day){return (day.scheduled||[]).includes(weekdayToday());}
+  const WEEK=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  function weekdayLabel(arr){return arr.map(n=>WEEK[n]).join(", ");}
+  function findDay(id){return (store.workoutDays||[]).find(d=>d.id===id)||null;}
+  function lastWorkoutForTemplate(templateId){return [...store.workouts].filter(w=>w.templateId===templateId).sort((a,b)=>a.date<b.date?1:-1)[0]||null;}
+  function blankSessionFromDay(day){return {templateId:day.id,date:todayISO(),sessionNotes:"",coachNotes:"",exercises:(day.exercises||[]).map(ex=>({name:ex.name,sets:Array.from({length:ex.defaultSets||3},()=>({reps:"",kg:""}))}))};}
+  function normalizePrevWorkout(day,w){
+    if(!w) return null;
+    const map=new Map((w.exercises||[]).map(ex=>[ex.name,ex]));
+    return {templateId:day.id,date:w.date,sessionNotes:w.sessionNotes||"",coachNotes:w.coachNotes||"",
+      exercises:(day.exercises||[]).map(ex=>{
+        const prev=map.get(ex.name);
+        return {name:ex.name,sets:(prev?.sets||[]).map(s=>({reps:s.reps??"",kg:s.kg??""}))};
+      })};
+  }
+
+  function renderWorkoutDays(){
+    dayGrid.innerHTML="";
+    const days=store.workoutDays||[];
+    if(!days.length){const div=document.createElement("div");div.className="item";div.innerHTML=`<div class="t">No workout days</div>`;dayGrid.appendChild(div);return;}
+    days.forEach(day=>{
+      const tile=document.createElement("div");
+      tile.className="dayTile"+(isScheduledToday(day)?" scheduled":"");
+      const initials=day.name.split(" ").map(s=>s[0]).slice(0,2).join("").toUpperCase();
+      const exCount=(day.exercises||[]).length;
+      tile.innerHTML=`<div class="dayIcon">${initials}</div><div class="title" style="z-index:2">${day.name}</div><div class="small" style="z-index:2">${exCount} exercises${(day.scheduled||[]).length?` • ${weekdayLabel(day.scheduled)}`:""}</div>`;
+      tile.addEventListener("click",()=>openWorkoutDay(day.id));
+      dayGrid.appendChild(tile);
+    });
+  }
+  function renderExerciseTabs(day){
+    exTabs.innerHTML="";
+    (day.exercises||[]).forEach(ex=>{
+      const btn=document.createElement("button");btn.className="exTab";btn.textContent=ex.name;
+      btn.addEventListener("click",()=>setActiveExercise(ex.name));exTabs.appendChild(btn);
+    });
+    updateActiveTabUI();
+  }
+  function updateActiveTabUI(){Array.from(exTabs.children).forEach(el=>el.classList.toggle("active", el.textContent===activeExName));}
+  function getCurrentExerciseObj(name){return (currentSession.exercises||[]).find(ex=>ex.name===name)||null;}
+  function getPrevExerciseObj(name){return (prevSession?.exercises||[]).find(ex=>ex.name===name)||null;}
+  function setActiveExercise(name){
+    activeExName=name;updateActiveTabUI();
+    if(!name){setArea.classList.add("hidden");return;}
+    setArea.classList.remove("hidden");exTitle.textContent=name;renderSetTable();
+  }
+  function renderSetTable(){
+    setTbody.innerHTML="";
+    const cur=getCurrentExerciseObj(activeExName); if(!cur) return;
+    const prev=getPrevExerciseObj(activeExName); const prevSets=prev?.sets||[];
+    const rows=Math.max(cur.sets.length, prevSets.length, 1);
+    while(cur.sets.length<rows) cur.sets.push({reps:"",kg:""});
+    for(let i=0;i<rows;i++){
+      const lastReps=prevSets[i]?.reps??""; const lastKg=prevSets[i]?.kg??"";
+      const reps=cur.sets[i].reps??""; const kg=cur.sets[i].kg??"";
+      const tr=document.createElement("tr");
+      tr.innerHTML=`<td><b>${i+1}</b></td><td>${lastReps}</td><td>${lastKg}</td>
+        <td><input class="numInput small" inputmode="numeric" value="${reps}" data-i="${i}" data-f="reps"></td>
+        <td><input class="numInput" inputmode="decimal" value="${kg}" data-i="${i}" data-f="kg"></td>`;
+      setTbody.appendChild(tr);
+    }
+    setTbody.querySelectorAll("input").forEach(inp=>{
+      inp.addEventListener("input",()=>{
+        const i=Number(inp.getAttribute("data-i")); const f=inp.getAttribute("data-f");
+        const cur=getCurrentExerciseObj(activeExName);
+        if(!cur||!Number.isFinite(i)||!f) return;
+        cur.sets[i][f]=inp.value;
+      });
+    });
+  }
+  addSetBtn.addEventListener("click",()=>{const cur=getCurrentExerciseObj(activeExName);if(!cur)return;cur.sets.push({reps:"",kg:""});renderSetTable();});
+  removeSetBtn.addEventListener("click",()=>{const cur=getCurrentExerciseObj(activeExName);if(!cur)return;if(cur.sets.length>1)cur.sets.pop();renderSetTable();});
+
+  function openWorkoutDay(dayId){
+    const day=findDay(dayId); if(!day){alert("Not found");return;}
+    activeDayId=dayId; $("wo_day_title").textContent=day.name; $("wo_date").value=todayISO(); $("wo_session_notes").value=""; woCoach.value=store.coach.workouts||"";
+    const prev=lastWorkoutForTemplate(dayId); prevSession=prev?normalizePrevWorkout(day,prev):null;
+    woPrevLabel.textContent = prev ? `Last: ${prev.date}` : `No previous session`;
+    currentSession=blankSessionFromDay(day); renderExerciseTabs(day); setActiveExercise(day.exercises?.[0]?.name||null); showWorkoutSessionView();
+  }
+  $("wo_back_days").addEventListener("click",()=>{store.coach.workouts=woCoach.value; save(); showWorkoutDaysView(); renderWorkoutDays();});
+  $("wo_load_prev").addEventListener("click",()=>{
+    const day=findDay(activeDayId); if(!day) return;
+    const prev=lastWorkoutForTemplate(activeDayId); if(!prev){alert("No previous");return;}
+    const normalized=normalizePrevWorkout(day,prev);
+    currentSession={templateId:day.id,date:todayISO(),sessionNotes:"",coachNotes:"",exercises: normalized.exercises.map(ex=>({name:ex.name,sets:(ex.sets||[]).map(s=>({reps:s.reps,kg:s.kg}))}))};
+    $("wo_date").value=currentSession.date; $("wo_session_notes").value=""; prevSession=normalized;
+    renderExerciseTabs(day); setActiveExercise(activeExName||day.exercises?.[0]?.name||null);
+  });
+  $("wo_save").addEventListener("click",()=>{
+    const day=findDay(activeDayId); if(!day){alert("No day");return;}
+    currentSession.date=$("wo_date").value||todayISO(); currentSession.sessionNotes=$("wo_session_notes").value.trim(); currentSession.coachNotes=woCoach.value.trim();
+    const payload={id:uid(),date:currentSession.date,templateId:day.id,title:day.name,sessionNotes:currentSession.sessionNotes||undefined,coachNotes:currentSession.coachNotes||undefined,
+      exercises:(currentSession.exercises||[]).map(ex=>({name:ex.name,sets:(ex.sets||[]).map(s=>({reps:s.reps,kg:s.kg})).filter(s=>String(s.reps).trim()!==""||String(s.kg).trim()!=="")}))};
+    store.workouts.unshift(payload);
+    store.coach.workouts=woCoach.value;
+    save(); alert("Saved workout."); renderAll();
+  });
+
+  // Rest timer
+  const restTimeEl=$("restTime"), restStart=$("restStart"), restReset=$("restReset");
+  let restTotal=180, restLeft=180, restTimer=null;
+  const fmt=(sec)=>String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");
+  const renderRest=()=>restTimeEl.textContent=fmt(restLeft);
+  renderRest();
+  function beep2s(){
+    try{const ctx=new (window.AudioContext||window.webkitAudioContext)();const osc=ctx.createOscillator();const gain=ctx.createGain();
+      osc.type="sine";osc.frequency.value=880;gain.gain.setValueAtTime(0.0001,ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.22,ctx.currentTime+0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+2.0);
+      osc.connect(gain);gain.connect(ctx.destination);osc.start();osc.stop(ctx.currentTime+2.05);osc.onended=()=>ctx.close().catch(()=>{});}catch(e){}}
+  restStart.addEventListener("click",()=>{if(restTimer)return;restTimer=setInterval(()=>{restLeft=Math.max(0,restLeft-1);renderRest();if(restLeft<=0){clearInterval(restTimer);restTimer=null;beep2s();}},1000);});
+  restReset.addEventListener("click",()=>{if(restTimer){clearInterval(restTimer);restTimer=null;}restLeft=restTotal;renderRest();});
+
+  // Day manage
+  const dayManageBtn=$("day_manage"), dayManageDone=$("day_manage_done"), daySelect=$("day_select");
+  const dayNew=$("day_new"), dayEdit=$("day_edit"), dayDelete=$("day_delete");
+  const dayEditor=$("day_editor"), dayName=$("day_name"), dayNotes=$("day_notes"), dayExercises=$("day_exercises");
+  const dayCancel=$("day_cancel"), daySave=$("day_save"), weekdayChecks=$("weekdayChecks");
+  const WEEKFULL=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+  let editingDayId=null; let editingScheduled=new Set();
+
+  function refreshDaySelect(){
+    daySelect.innerHTML="";
+    (store.workoutDays||[]).forEach(d=>{const opt=document.createElement("option");opt.value=d.id;opt.textContent=d.name;daySelect.appendChild(opt);});
+    if(!store.workoutDays.length){const opt=document.createElement("option");opt.value="";opt.textContent="No workout days";daySelect.appendChild(opt);}
+  }
+  function getSelectedDay(){ return (store.workoutDays||[]).find(d=>d.id===daySelect.value)||null; }
+  function renderWeekdayCheckboxes(){
+    weekdayChecks.innerHTML="";
+    WEEKFULL.forEach((lab,i)=>{
+      const btn=document.createElement("button");btn.type="button";btn.className="btn small";btn.textContent=lab;
+      btn.style.background=editingScheduled.has(i)?"rgba(34,197,94,.16)":"rgba(255,255,255,.06)";
+      btn.style.borderColor=editingScheduled.has(i)?"rgba(34,197,94,.45)":"rgba(255,255,255,.14)";
+      btn.addEventListener("click",()=>{editingScheduled.has(i)?editingScheduled.delete(i):editingScheduled.add(i);renderWeekdayCheckboxes();});
+      weekdayChecks.appendChild(btn);
+    });
+  }
+  function showDayEditor(mode){
+    dayEditor.classList.remove("hidden");
+    if(mode==="new"){editingDayId=null;dayName.value="";dayNotes.value="";dayExercises.value="";editingScheduled=new Set();}
+    else{const d=getSelectedDay();if(!d)return;editingDayId=d.id;dayName.value=d.name;dayNotes.value=d.notes||"";dayExercises.value=(d.exercises||[]).map(ex=>`${ex.name} x${ex.defaultSets||3}`).join("\n");editingScheduled=new Set(d.scheduled||[]);}
+    renderWeekdayCheckboxes();
+  }
+  function hideDayEditor(){dayEditor.classList.add("hidden");editingDayId=null;editingScheduled=new Set();}
+  dayManageBtn.addEventListener("click",()=>{refreshDaySelect();hideDayEditor();showDayManageView();});
+  dayManageDone.addEventListener("click",()=>{hideDayEditor();showWorkoutDaysView();renderWorkoutDays();});
+  dayNew.addEventListener("click",()=>showDayEditor("new"));
+  dayEdit.addEventListener("click",()=>showDayEditor("edit"));
+  dayCancel.addEventListener("click",hideDayEditor);
+  daySave.addEventListener("click",()=>{
+    const name=dayName.value.trim(); if(!name){alert("Name required");return;}
+    const notes=dayNotes.value.trim();
+    const parsed=dayExercises.value.split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
+      const m=line.match(/^(.*?)(?:\s*[xX]\s*(\d+))?\s*$/);
+      const n=(m?.[1]||line).trim(); const sets=m?.[2]?Math.max(1,Number(m[2])):3;
+      return {name:n, defaultSets:sets};
+    }).filter(e=>e.name);
+    const scheduled=Array.from(editingScheduled).sort((a,b)=>a-b);
+    if(editingDayId) store.workoutDays=store.workoutDays.map(d=>d.id===editingDayId?({...d,name,notes,scheduled,exercises:parsed.length?parsed:d.exercises}):d);
+    else store.workoutDays.push({id:uid(),name,notes,scheduled,exercises:parsed.length?parsed:[{name:"Exercise",defaultSets:3}]});
+    save(); refreshDaySelect(); hideDayEditor(); renderAll();
+  });
+  dayDelete.addEventListener("click",()=>{
+    const d=getSelectedDay(); if(!d) return;
+    if(confirm(`Delete "${d.name}"? (Past logs stay.)`)){
+      store.workoutDays=store.workoutDays.filter(x=>x.id!==d.id);
+      save(); refreshDaySelect(); hideDayEditor(); renderAll();
+    }
+  });
+
+  // Render all
+  function renderAll(){
+    // default dates
+    w_date.value=todayISO(); m_date.value=todayISO(); p_date.value=todayISO();
+    // coach fields
+    coachMeals.value=store.coach.meals||""; coachProgress.value=store.coach.progress||""; woCoach.value=store.coach.workouts||"";
+    renderWeightsList(); renderMealsList(); renderProgressList(); renderDashboard();
+  }
+
+  // init
+  renderAll(); setPage("home");
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
