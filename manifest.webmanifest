@@ -1,10 +1,11 @@
 {
   "name": "Fitness Log",
-  "short_name": "Fitness Log",
+  "short_name": "FitnessLog",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#2b1b55",
-  "theme_color": "#151436",
+  "background_color": "#0b1020",
+  "theme_color": "#0b1020",
   "icons": [
     {
       "src": "icon-192.png",

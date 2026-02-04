@@ -1,1602 +1,1785 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#151436"/>
-<title>Fitness Log</title>
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" href="icon-192.png">
-<style>
-:root{
-  --bg:#151436;
-  --bg2:#0f1230;
-  --card:#1a1f45;
-  --card2:#20285a;
-  --text:#f6f7ff;
-  --muted:rgba(246,247,255,.75);
-  --line:rgba(255,255,255,.10);
-  --shadow:0 18px 55px rgba(0,0,0,.45);
-  --r:22px;
-  --r2:16px;
-  --gradHeader:linear-gradient(135deg,#0f1a56 0%, #2e1b6f 45%, #ff3b3b 100%);
-  --gradOrange:linear-gradient(135deg,#ff512f 0%, #f09819 100%);
-  --gradBlue:linear-gradient(135deg,#00c6ff 0%, #0072ff 100%);
-  --gradGreen:linear-gradient(135deg,#00b09b 0%, #96c93d 100%);
-  --gradRed:linear-gradient(135deg,#ff416c 0%, #ff4b2b 100%);
-  --good:#22c55e; --warn:#f59e0b; --bad:#ef4444;
-
-  --safeTop:env(safe-area-inset-top,0px);
-  --safeBot:env(safe-area-inset-bottom,0px);
-}
-*{box-sizing:border-box}
-html,body{height:100%;overscroll-behavior:none}
-body{
-  margin:0;
-  font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-  color:var(--text);
-  background: radial-gradient(1200px 800px at 50% -10%, rgba(255,81,47,.25), transparent 55%),
-             radial-gradient(1200px 800px at 0% 0%, rgba(106,17,203,.22), transparent 55%),
-             linear-gradient(180deg, #2b1b55 0%, var(--bg) 35%, var(--bg2) 100%);
-  -webkit-font-smoothing:antialiased;
-}
-.app{min-height:100dvh;display:flex;justify-content:center;padding:12px 12px calc(12px + var(--safeBot)); padding-top:calc(10px + var(--safeTop))}
-.phone{width:min(430px,100%);display:flex;flex-direction:column;gap:12px}
-.header{
-  border-radius:28px;
-  overflow:hidden;
-  box-shadow:var(--shadow);
-  border:1px solid rgba(255,255,255,.12);
-  background:var(--gradHeader);
-}
-.headerInner{
-  padding:14px 14px 12px;
-}
-.headerTop{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-}
-.hIconBtn{
-  width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.20);
-  background:rgba(0,0,0,.12);
-  display:grid;place-items:center;
-  cursor:pointer;
-}
-.hTitle{font-weight:950;font-size:22px;letter-spacing:-.02em;line-height:1}
-.hSub{margin-top:6px;color:rgba(255,255,255,.82);font-weight:800}
-.card{
-  background:rgba(20,24,60,.72);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:28px;
-  box-shadow:var(--shadow);
-}
-.sectionPad{padding:14px}
-.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.stat{
-  border-radius:18px;
-  padding:14px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  position:relative;
-  overflow:hidden;
-  cursor:pointer;
-  min-height:92px;
-}
-.stat::after{
-  content:"";
-  position:absolute;inset:-10px;
-  opacity:.55;
-  filter:blur(22px);
-  transform:translateY(35px);
-}
-.stat.weight::after{background:var(--gradBlue)}
-.stat.meals::after{background:var(--gradOrange)}
-.stat.workouts::after{background:var(--gradGreen)}
-.stat.progress::after{background:var(--gradRed)}
-.stat.steps::after{background:linear-gradient(135deg,#f7971e 0%, #ffd200 100%)}
-.stat.cardio::after{background:linear-gradient(135deg,#7f00ff 0%, #e100ff 100%)}
-.statRow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;position:relative;z-index:2}
-.statName{font-weight:950;font-size:22px;letter-spacing:-.02em}
-.statVal{font-weight:950;font-size:30px;letter-spacing:-.02em}
-.statUnit{font-weight:900;font-size:14px;color:rgba(255,255,255,.80)}
-.statSub{position:relative;z-index:2;margin-top:6px;color:rgba(255,255,255,.82);font-weight:850;font-size:13px}
-
-.ringRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:12px}
-@media (max-width:390px){.ringRow{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.ringCard{
-  border-radius:22px;
-  padding:12px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-  display:flex;gap:10px;align-items:center;
-  min-width:0;
-}
-.ring{
-  --p:0;--col:rgba(245,158,11,.95);
-  width:78px;height:78px;border-radius:999px;
-  background:conic-gradient(var(--col) calc(var(--p)*1turn), rgba(255,255,255,.14) 0);
-  position:relative;flex:0 0 auto;
-}
-.ring::after{content:"";position:absolute;inset:8px;border-radius:999px;background:rgba(15,18,48,.95);border:1px solid rgba(255,255,255,.10)}
-.ringCenter{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;font-weight:950;line-height:1.05}
-.ringCenter .big{font-size:16px}
-.ringCenter .tiny{font-size:11px;color:rgba(255,255,255,.70);font-weight:900;margin-top:2px}
-.rLabel{font-weight:950}
-.rSub{font-size:12px;color:rgba(255,255,255,.72);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-.page{display:none}
-.page.active{display:block}
-.toolbar{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:12px 12px;
-  border-radius:28px;
-  background:var(--gradHeader);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:var(--shadow);
-}
-.tbTitle{font-weight:950;font-size:22px;letter-spacing:-.02em}
-.tbSub{font-weight:800;color:rgba(255,255,255,.80);font-size:13px;margin-top:2px}
-.tbLeft{display:flex;align-items:center;gap:10px}
-.iconBtn{
-  width:38px;height:38px;border-radius:14px;border:1px solid rgba(255,255,255,.20);
-  background:rgba(0,0,0,.12);
-  display:grid;place-items:center;cursor:pointer;color:white;
-}
-.pills{display:flex;gap:10px;overflow:auto;padding:10px 8px 0}
-.pill{
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  padding:10px 14px;
-  border-radius:14px;
-  font-weight:950;
-  white-space:nowrap;
-  cursor:pointer;
-}
-.pill.active{background:var(--gradOrange);color:#140d2e;border-color:rgba(255,255,255,.18)}
-.block{padding:12px}
-.panel{
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:22px;
-  overflow:hidden;
-}
-.panelHeader{
-  padding:12px;
-  background:linear-gradient(135deg,rgba(255,65,108,.50),rgba(255,152,25,.40));
-  border-bottom:1px solid rgba(255,255,255,.10);
-  display:flex;justify-content:space-between;align-items:center;gap:10px;
-}
-.panelHeader .phTitle{font-weight:950}
-.segment{display:flex;gap:10px;align-items:center;font-weight:950;color:rgba(255,255,255,.85)}
-.segment .segBtn{cursor:pointer;color:rgba(255,255,255,.9)}
-.table{width:100%;border-collapse:separate;border-spacing:0}
-.table th,.table td{padding:10px;border-bottom:1px solid rgba(255,255,255,.10);text-align:center;font-weight:900}
-.table th{font-size:12px;color:rgba(255,255,255,.70);background:rgba(255,255,255,.04)}
-.table td{font-size:14px}
-.table tr:last-child td{border-bottom:none}
-.addRow{padding:12px;display:flex;justify-content:center}
-.addBtn{
-  width:100%;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  padding:12px 14px;
-  border-radius:16px;
-  font-weight:950;
-  cursor:pointer;
-}
-.timerCard{
-  margin-top:12px;
-  border-radius:22px;
-  overflow:hidden;
-  border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(135deg,rgba(106,17,203,.35),rgba(255,81,47,.25),rgba(240,152,25,.25));
-  padding:14px;
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-}
-.timerVal{font-weight:950;font-size:44px;letter-spacing:-.03em}
-.timerBtn{
-  flex:1;
-  border:none;
-  border-radius:16px;
-  padding:12px 14px;
-  font-weight:950;
-  background:var(--gradOrange);
-  color:#140d2e;
-  cursor:pointer;
-}
-.formRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-label{display:block;font-size:12px;color:rgba(255,255,255,.70);font-weight:850;margin:10px 0 6px}
-input,textarea,select{
-  width:100%;
-  padding:12px 12px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  outline:none;
-  font-size:14px;
-}
-textarea{min-height:110px;resize:vertical}
-.list{display:flex;flex-direction:column;gap:10px}
-.item{
-  padding:12px;
-  border-radius:22px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-}
-.itemTitle{font-weight:950;font-size:18px}
-.itemMeta{margin-top:6px;color:rgba(255,255,255,.78);font-weight:850}
-.itemBody{margin-top:10px;white-space:pre-wrap;color:rgba(255,255,255,.88)}
-.itemActions{display:flex;gap:10px;margin-top:12px}
-.btnSm{
-  border:1px solid rgba(255,255,255,.14);
-  background:rgba(255,255,255,.06);
-  color:var(--text);
-  padding:10px 12px;border-radius:14px;font-weight:950;cursor:pointer
-}
-.btnSm.danger{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.28)}
-.totalBar{
-  margin-top:12px;
-  padding:12px;
-  border-radius:22px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.12);
-  font-weight:950;
-  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap
-}
-.coachBox{
-  margin-top:12px;
-  padding:12px;
-  border-radius:22px;
-  border:1px solid rgba(255,255,255,.12);
-  background:linear-gradient(135deg,rgba(255,65,108,.18),rgba(106,17,203,.16));
-}
-.coachTitle{font-weight:950}
-.coachNote{margin-top:8px;color:rgba(255,255,255,.90);font-weight:850;font-style:italic}
-.hidden{display:none!important}
-</style>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0b1020"/>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <title>Fitness Log</title>
+  <style>
+    :root{
+      --bg0:#070b16;
+      --bg1:#0b1020;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.045);
+      --stroke:rgba(255,255,255,.10);
+      --text:#f4f7ff;
+      --muted:rgba(244,247,255,.72);
+      --muted2:rgba(244,247,255,.56);
+      --shadow: 0 16px 40px rgba(0,0,0,.45);
+      --r:24px;
+      --r2:18px;
+      --gradBlue:linear-gradient(135deg,#4facfe 0%, #00f2fe 100%);
+      --gradPink:linear-gradient(135deg,#f857a6 0%, #ff5858 100%);
+      --gradPurple:linear-gradient(135deg,#7f00ff 0%, #e100ff 100%);
+      --gradAmber:linear-gradient(135deg,#f7971e 0%, #ffd200 100%);
+      --gradGreen:linear-gradient(135deg,#00c853 0%, #b2ff59 100%);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background:
+        radial-gradient(1200px 900px at 20% 0%, rgba(127,0,255,.28), transparent 60%),
+        radial-gradient(1200px 900px at 80% 10%, rgba(0,242,254,.18), transparent 55%),
+        radial-gradient(1200px 900px at 50% 120%, rgba(255,88,88,.16), transparent 55%),
+        linear-gradient(180deg,var(--bg0), var(--bg1));
+      color:var(--text);
+      overflow:hidden;
+    }
+    .app{
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      padding: env(safe-area-inset-top) 12px env(safe-area-inset-bottom) 12px;
+      gap:10px;
+    }
+    .topbar{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 6px 6px 6px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+    }
+    .logo{
+      width:34px; height:34px; border-radius:14px;
+      background: linear-gradient(135deg, rgba(255,255,255,.18), rgba(255,255,255,.06));
+      border:1px solid rgba(255,255,255,.14);
+      display:grid; place-items:center;
+      box-shadow: var(--shadow);
+    }
+    .logo span{font-size:18px}
+    .brandTitle{font-weight:950; letter-spacing:.2px}
+    .brandSub{font-size:12px; color:var(--muted2); margin-top:1px}
+    .iconBtn{
+      width:40px; height:40px; border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      display:grid; place-items:center;
+      box-shadow: var(--shadow);
+      cursor:pointer;
+      user-select:none;
+    }
+    .iconBtn:active{transform:translateY(1px)}
+    .page{
+      flex:1;
+      display:none;
+      overflow:hidden;
+    }
+    .page.active{display:flex; flex-direction:column; gap:10px;}
+    .card{
+      background:var(--card);
+      border:1px solid var(--stroke);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+    }
+    .dashboard{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      overflow:hidden;
+    }
+    .tiles{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    .tile{
+      position:relative;
+      padding:14px;
+      border-radius:22px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.12);
+      overflow:hidden;
+      cursor:pointer;
+      user-select:none;
+      min-height:90px;
+    }
+    .tile::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,0));
+      opacity:.55;
+    }
+    .tile::after{
+      content:"";
+      position:absolute; inset:0;
+      background:var(--gradBlue);
+      opacity:.10;
+      mix-blend-mode:screen;
+    }
+    .tile[data-grad="pink"]::after{background:var(--gradPink)}
+    .tile[data-grad="amber"]::after{background:var(--gradAmber)}
+    .tile[data-grad="purple"]::after{background:var(--gradPurple)}
+    .tile[data-grad="green"]::after{background:var(--gradGreen)}
+    .tileInner{position:relative; z-index:2; display:flex; flex-direction:column; gap:6px;}
+    .tileTop{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+    .tileTitle{font-weight:900; letter-spacing:.15px}
+    .tileIcon{
+      width:34px; height:34px; border-radius:14px;
+      display:grid; place-items:center;
+      background:rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.14);
+    }
+    .tileValue{font-size:22px; font-weight:950; line-height:1;}
+    .tileSub{font-size:12px; color:var(--muted2)}
+    .rings{
+      display:grid; grid-template-columns: 1fr 1fr;
+      gap:10px;
+      overflow:hidden;
+    }
+    .ringCard{padding:14px; border-radius:22px;}
+    .ringRow{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+    .ringLabel{font-weight:900}
+    .ringMeta{font-size:12px; color:var(--muted2); margin-top:2px}
+    .ringSvg{width:74px; height:74px}
+    .ringValue{font-weight:950; font-size:16px}
+    .ringSmall{font-size:11px; color:var(--muted2); margin-top:2px}
+    .toolbar{
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+      padding:10px 10px;
+    }
+    .tbTitle{font-weight:950}
+    .tbSub{font-size:12px; color:var(--muted2)}
+    .content{
+      flex:1;
+      overflow:auto;
+      padding:0 0 6px 0;
+      scrollbar-width:none;
+    }
+    .content::-webkit-scrollbar{display:none}
+    .section{padding:12px}
+    label{display:block; font-size:12px; color:var(--muted2); margin:10px 0 6px}
+    input, select, textarea{
+      width:100%;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.20);
+      color:var(--text);
+      padding:12px 12px;
+      font-size:14px;
+      outline:none;
+    }
+    textarea{min-height:84px; resize:vertical}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    .btnRow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    .btn{
+      border:none; cursor:pointer;
+      border-radius:16px;
+      padding:12px 14px;
+      font-weight:900;
+      background:rgba(255,255,255,.10);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.14);
+    }
+    .btn.primary{background:var(--gradBlue); color:#071019; border:none}
+    .btn.pink{background:var(--gradPink); color:#140a10; border:none}
+    .btn.purple{background:var(--gradPurple); color:#fff; border:none}
+    .btn.amber{background:var(--gradAmber); color:#160f00; border:none}
+    .btn.danger{background:rgba(255,80,80,.18); border:1px solid rgba(255,80,80,.30)}
+    .list{display:flex; flex-direction:column; gap:10px; margin-top:12px}
+    .item{
+      padding:12px;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+    }
+    .itemTop{display:flex; justify-content:space-between; gap:10px; align-items:flex-start}
+    .itemTitle{font-weight:950}
+    .itemMeta{font-size:12px; color:var(--muted2); margin-top:3px}
+    .itemBody{font-size:13px; color:var(--muted); margin-top:8px; white-space:pre-wrap}
+    .itemActions{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .pillRow{display:flex; gap:8px; flex-wrap:wrap; margin-top:8px}
+    .pill{
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      font-size:12px;
+      cursor:pointer;
+      user-select:none;
+    }
+    .pill.on{background:rgba(0,200,83,.18); border-color:rgba(0,200,83,.35)}
+    .muted{color:var(--muted2)}
+    .table{
+      width:100%;
+      border-collapse:separate;
+      border-spacing:0 8px;
+      margin-top:10px;
+    }
+    .table th{
+      text-align:left;
+      font-size:12px;
+      color:var(--muted2);
+      font-weight:900;
+      padding:0 8px;
+    }
+    .table td{
+      padding:10px 8px;
+      background:rgba(255,255,255,.04);
+      border-top:1px solid rgba(255,255,255,.10);
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+    .table tr td:first-child{border-left:1px solid rgba(255,255,255,.10); border-top-left-radius:16px; border-bottom-left-radius:16px}
+    .table tr td:last-child{border-right:1px solid rgba(255,255,255,.10); border-top-right-radius:16px; border-bottom-right-radius:16px}
+    .lock{
+      opacity:.70;
+      pointer-events:none;
+    }
+    .restBar{
+      position:sticky;
+      bottom:0;
+      padding:10px;
+      margin-top:10px;
+      border-radius:22px;
+      background:rgba(0,0,0,.26);
+      border:1px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(10px);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .restTime{font-weight:950; font-size:16px}
+    .tiny{font-size:12px; color:var(--muted2)}
+    .modal{
+      position:fixed; inset:0;
+      display:none;
+      background:rgba(0,0,0,.55);
+      padding:18px 12px;
+    }
+    .modal.on{display:flex; align-items:flex-end; justify-content:center;}
+    .sheet{
+      width:100%;
+      max-width:520px;
+      border-radius:28px;
+      padding:14px;
+      background:rgba(12,16,32,.92);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+    }
+    .sheetTop{display:flex; justify-content:space-between; align-items:center; gap:10px; padding:6px 4px 10px}
+    .sheetTitle{font-weight:950}
+    .hr{height:1px; background:rgba(255,255,255,.10); margin:10px 0}
+    .toast{
+      position:fixed;
+      left:12px; right:12px; bottom:12px;
+      background:rgba(0,0,0,.52);
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:16px;
+      display:none;
+      box-shadow: var(--shadow);
+      font-size:13px;
+    }
+    .toast.on{display:block}
+  </style>
 </head>
 <body>
-<div class="app">
-  <div class="phone">
-
-    <!-- DASHBOARD -->
-    <div id="page-dashboard" class="page active">
-      <div class="header">
-        <div class="headerInner">
-          <div class="headerTop">
-            <div class="hIconBtn" id="btnMenu">☰</div>
-            <div style="text-align:center;flex:1">
-              <div class="hTitle">Dashboard</div>
-            </div>
-            <div class="hIconBtn" id="btnSettings">⚙</div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="hSub" style="font-size:20px;font-weight:950">Welcome Back!</div>
-            <div class="hSub" id="dashDate">—</div>
-          </div>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"><span>💪</span></div>
+        <div>
+          <div class="brandTitle">Fitness Log</div>
+          <div class="brandSub" id="brandSub">Local tracker</div>
         </div>
       </div>
+      <div style="display:flex; gap:10px">
+        <div class="iconBtn" id="btnSettings" title="Settings">⚙️</div>
+      </div>
+    </div>
 
-      <div class="card sectionPad">
-        <div class="grid2">
-          <div class="stat weight" data-nav="weight">
-            <div class="statRow">
-              <div>
-                <div class="statName">Weight</div>
-                <div class="statVal" id="dashWeight">— <span class="statUnit">kg</span></div>
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="dashboard">
+        <div class="tiles">
+          <div class="tile" data-go="workouts" data-grad="green">
+            <div class="tileInner">
+              <div class="tileTop">
+                <div>
+                  <div class="tileTitle">Workouts</div>
+                  <div class="tileSub" id="dashWorkoutSub">This week: 0</div>
+                </div>
+                <div class="tileIcon">🏋️</div>
               </div>
+              <div class="tileValue" id="dashWorkouts">0</div>
+              <div class="tileSub">Sessions this week</div>
             </div>
           </div>
-          <div class="stat meals" data-nav="meals">
-            <div class="statRow">
-              <div>
-                <div class="statName">Meals</div>
-                <div class="statVal" id="dashMeals">— <span class="statUnit">Left</span></div>
+
+          <div class="tile" data-go="meals" data-grad="amber">
+            <div class="tileInner">
+              <div class="tileTop">
+                <div>
+                  <div class="tileTitle">Calories</div>
+                  <div class="tileSub" id="dashCalsSub">Today</div>
+                </div>
+                <div class="tileIcon">🍽️</div>
               </div>
+              <div class="tileValue"><span id="dashCalsLeft">—</span></div>
+              <div class="tileSub"><span id="dashCalsLeftLabel">Left</span> • Consumed: <span id="dashCalsConsumed">0</span></div>
             </div>
           </div>
-          <div class="stat workouts" data-nav="workouts">
-            <div class="statRow">
-              <div>
-                <div class="statName">Workouts</div>
-                <div class="statVal"><span id="dashWorkouts">0</span> <span class="statUnit">This Week</span></div>
+
+          <div class="tile" data-go="weight" data-grad="pink">
+            <div class="tileInner">
+              <div class="tileTop">
+                <div>
+                  <div class="tileTitle">Weight</div>
+                  <div class="tileSub" id="dashWeightSub">Last: —</div>
+                </div>
+                <div class="tileIcon">⚖️</div>
               </div>
+              <div class="tileValue" id="dashWeight">—</div>
+              <div class="tileSub">Tap to log</div>
             </div>
           </div>
-          <div class="stat progress" data-nav="progress">
-            <div class="statRow">
-              <div>
-                <div class="statName">Progress</div>
-                <div class="statSub" id="dashProgressSub">Waist / notes</div>
+
+          <div class="tile" data-go="steps" data-grad="amber">
+            <div class="tileInner">
+              <div class="tileTop">
+                <div>
+                  <div class="tileTitle">Steps</div>
+                  <div class="tileSub" id="dashStepsSub">Target: —</div>
+                </div>
+                <div class="tileIcon">👟</div>
               </div>
+              <div class="tileValue" id="dashSteps">0</div>
+              <div class="tileSub">Today</div>
             </div>
           </div>
-          <div class="stat steps" data-nav="steps">
-            <div class="statRow">
-              <div>
-                <div class="statName">Steps</div>
-                <div class="statVal"><span id="dashSteps">0</span> <span class="statUnit">Today</span></div>
+
+          <div class="tile" data-go="cardio" data-grad="purple">
+            <div class="tileInner">
+              <div class="tileTop">
+                <div>
+                  <div class="tileTitle">Cardio</div>
+                  <div class="tileSub" id="dashCardioSub">This month</div>
+                </div>
+                <div class="tileIcon">🏃</div>
               </div>
+              <div class="tileValue" id="dashCardio">0</div>
+              <div class="tileSub"><span id="dashCardioKm">0.0</span> km this month</div>
             </div>
-            <div class="statSub" id="dashStepsSub">Target: —</div>
           </div>
-          <div class="stat cardio" data-nav="cardio">
-            <div class="statRow">
-              <div>
-                <div class="statName">Cardio</div>
-                <div class="statVal"><span id="dashCardio">0</span> <span class="statUnit">This month</span></div>
+
+          <div class="tile" data-go="progress" data-grad="blue">
+            <div class="tileInner">
+              <div class="tileTop">
+                <div>
+                  <div class="tileTitle">Progress</div>
+                  <div class="tileSub" id="dashProgSub">Notes / waist</div>
+                </div>
+                <div class="tileIcon">📈</div>
               </div>
+              <div class="tileValue" id="dashProgCount">0</div>
+              <div class="tileSub">Entries</div>
             </div>
-            <div class="statSub" id="dashCardioSub">—</div>
           </div>
         </div>
 
-        <div class="ringRow">
-          <div class="ringCard">
-            <div class="ring" id="calRing"><div class="ringCenter"><div class="big" id="calBig">—</div><div class="tiny">kcal</div></div></div>
-            <div style="min-width:0">
-              <div class="rLabel">Calories</div>
-              <div class="rSub" id="calSub">Set target</div>
+        <div class="rings">
+          <div class="card ringCard">
+            <div class="ringRow">
+              <div>
+                <div class="ringLabel">Calories</div>
+                <div class="ringMeta" id="calMeta">Target —</div>
+              </div>
+              <svg class="ringSvg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" stroke="rgba(255,255,255,.14)" stroke-width="10" fill="none"/>
+                <circle id="calRing" cx="50" cy="50" r="38" stroke="#00f2fe" stroke-width="10" fill="none"
+                        stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 999"/>
+              </svg>
             </div>
+            <div class="ringValue"><span id="calVal">0</span> / <span id="calTarget">0</span></div>
+            <div class="ringSmall" id="calHint">Logged today</div>
           </div>
-          <div class="ringCard">
-            <div class="ring" id="protRing"><div class="ringCenter"><div class="big" id="protBig">—</div><div class="tiny">g</div></div></div>
-            <div style="min-width:0">
-              <div class="rLabel">Protein</div>
-              <div class="rSub" id="protSub">Set target</div>
+
+          <div class="card ringCard">
+            <div class="ringRow">
+              <div>
+                <div class="ringLabel">Protein</div>
+                <div class="ringMeta" id="proMeta">Target —</div>
+              </div>
+              <svg class="ringSvg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" stroke="rgba(255,255,255,.14)" stroke-width="10" fill="none"/>
+                <circle id="proRing" cx="50" cy="50" r="38" stroke="#b2ff59" stroke-width="10" fill="none"
+                        stroke-linecap="round" transform="rotate(-90 50 50)" stroke-dasharray="0 999"/>
+              </svg>
             </div>
-          </div>
-          <div class="ringCard">
-            <div class="ring" id="lossRing"><div class="ringCenter"><div class="big" id="lossBig">—</div><div class="tiny">kg/wk</div></div></div>
-            <div style="min-width:0">
-              <div class="rLabel">Weight Change</div>
-              <div class="rSub" id="lossSub">Needs 7 days</div>
-            </div>
+            <div class="ringValue"><span id="proVal">0</span>g / <span id="proTarget">0</span>g</div>
+            <div class="ringSmall" id="proHint">Logged today</div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- WORKOUTS -->
-    <div id="page-workouts" class="page">
-      <div class="toolbar">
-        <div class="tbLeft">
-          <div class="iconBtn" data-back="dashboard">‹</div>
+    <div class="page" id="page-workouts">
+      <div class="toolbar card">
+        <div class="iconBtn" data-back="dashboard">‹</div>
+        <div style="flex:1">
+          <div class="tbTitle">Workouts</div>
+          <div class="tbSub">Pick a day • log sets • see last session</div>
         </div>
-        <div style="text-align:center;flex:1">
-          <div class="tbTitle">Workout</div>
-          <div class="tbSub" id="workoutDayLabel">—</div>
-        </div>
-        <div class="iconBtn" id="manageDaysBtn">👤+</div>
+        <div class="iconBtn" id="btnManageDays" title="Manage days">🗓️</div>
       </div>
 
-      <div id="workoutDaysView">
-        <div class="card sectionPad">
-          <div class="grid2" id="dayGrid"></div>
+      <div class="content">
+        <div class="section card" style="padding:12px">
+          <div class="tbTitle">Training Days</div>
+          <div class="tbSub">Green ring = scheduled day</div>
+          <div class="pillRow" id="dayPills"></div>
         </div>
-      </div>
 
-      <div id="workoutSessionView" class="hidden">
-        <div class="pills" id="exTabs"></div>
-        <div class="tbSub" style="padding:0 12px;margin-top:8px">To add/remove exercises: tap <b>Edit Day</b> (edits the workout template).</div>
+        <div class="section card" style="padding:12px; margin-top:10px">
+          <div class="tbTitle" id="woDayTitle">Select a day</div>
+          <div class="tbSub" id="woDaySub">Then choose an exercise</div>
 
-        <div class="card sectionPad">
-          <div class="panel">
-            <div class="panelHeader">
-              <div class="phTitle" id="exTitle">Bench Press</div>
-              <div class="segment">
-                <span class="segBtn" id="segLast">Last Session</span>
-                <span style="opacity:.5">|</span>
-                <span class="segBtn" id="segToday">Today's Sets</span>
+          <div class="pillRow" id="exPills"></div>
+
+          <div id="sessionArea" style="display:none">
+            <div class="hr"></div>
+            <div class="tbTitle" id="exTitle">Exercise</div>
+            <div class="tbSub">Last session is locked (reference). Log today on the right.</div>
+
+            <table class="table" id="setTable">
+              <thead>
+                <tr>
+                  <th style="width:34px">#</th>
+                  <th>Last</th>
+                  <th>Today</th>
+                </tr>
+              </thead>
+              <tbody id="setTbody"></tbody>
+            </table>
+
+            <div class="btnRow">
+              <button class="btn" id="btnAddSet">+ Set</button>
+              <button class="btn danger" id="btnDelSet">Remove set</button>
+              <button class="btn primary" id="btnSaveWorkout">Save session</button>
+            </div>
+
+            <div class="restBar">
+              <div>
+                <div class="restTime" id="restTime">03:00</div>
+                <div class="tiny" id="restState">Rest timer</div>
+              </div>
+              <div style="display:flex; gap:10px">
+                <button class="btn" id="restStart">Start</button>
+                <button class="btn" id="restReset">Reset</button>
               </div>
             </div>
-            <div style="padding:0 10px 10px">
-              <table class="table">
-                <thead><tr><th>Set</th><th>Reps</th><th>Weight (kg)</th><th>Reps</th><th>Weight</th></tr></thead>
-                <tbody id="setTbody"></tbody>
-              </table>
-            </div>
-            <div class="addRow"><button class="addBtn" id="addSetBtn">+ Add Set</button></div>
           </div>
 
-          <div class="timerCard">
-            <div>
-              <div class="timerVal" id="timerVal">03:00</div>
-              <div class="tbSub">Rest Timer</div>
-            </div>
-            <button class="timerBtn" id="timerBtn">Start Timer</button>
-          </div>
+        </div>
 
-          <div class="formRow" style="margin-top:12px">
-            <div><label>Date</label><input id="wo_date" type="date"></div>
-            <div><label>Notes</label><input id="wo_notes" placeholder="energy, cues"></div>
-          </div>
-          <label>Coach Notes (optional)</label>
-          <textarea id="wo_coach" placeholder="Advice for next time"></textarea>
-          <div style="display:flex;gap:10px;margin-top:10px">
-            <button class="btnSm" id="wo_back_days">Days</button>
-            <button class="btnSm" id="wo_edit_day" style="flex:1;background:rgba(255,255,255,.08)">Edit Day</button>
-            <button class="btnSm" id="wo_load_prev" style="flex:1">Load Last</button>
-            <button class="btnSm" id="wo_save" style="flex:1;background:var(--gradOrange);color:#140d2e;border:none">Save</button>
-          </div>
-          <div class="tbSub" id="wo_prev_label" style="margin-top:10px"></div>
-        </div>
-      </div>
-
-      <!-- Manage days sheet -->
-      <div class="card sectionPad hidden" id="manageDaysSheet">
-        <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-          <div style="font-weight:950;font-size:18px">Manage Workout Days</div>
-          <button class="btnSm" id="closeManage">Close</button>
-        </div>
-        <label>Workout day</label>
-        <select id="day_select"></select>
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="day_new" style="flex:1">New</button>
-          <button class="btnSm" id="day_edit" style="flex:1">Edit</button>
-          <button class="btnSm danger" id="day_delete" style="flex:1">Delete</button>
-        </div>
-        <div class="item hidden" id="day_editor" style="margin-top:12px">
-          <div style="font-weight:950">Day Editor</div>
-          <div class="formRow">
-            <div><label>Name</label><input id="day_name"></div>
-            <div><label>Notes</label><input id="day_notes"></div>
-          </div>
-          <label>Scheduled weekdays</label>
-          <div style="display:flex;gap:8px;flex-wrap:wrap" id="weekdayChecks"></div>
-          <label>Exercises (one per line, optional xN sets)</label>
-          <textarea id="day_exercises"></textarea>
-          <div style="display:flex;gap:10px;margin-top:10px">
-            <button class="btnSm" id="day_cancel" style="flex:1">Cancel</button>
-            <button class="btnSm" id="day_save" style="flex:1;background:var(--gradGreen);color:#102018;border:none">Save Day</button>
+        <div class="section card" style="padding:12px; margin-top:10px">
+          <div class="tbTitle">Coach Notes</div>
+          <div class="tbSub">Optional reminders for next time</div>
+          <textarea id="coach_workouts" placeholder="E.g., add 2.5kg next week on incline press, keep 1–2 reps in reserve…"></textarea>
+          <div class="btnRow">
+            <button class="btn primary" id="saveCoachWorkouts">Save notes</button>
           </div>
         </div>
       </div>
-
     </div>
 
     <!-- MEALS -->
-    <div id="page-meals" class="page">
-      <div class="toolbar">
-        <div class="tbLeft">
-          <div class="iconBtn" data-back="dashboard">‹</div>
-        </div>
-        <div style="text-align:center;flex:1">
+    <div class="page" id="page-meals">
+      <div class="toolbar card">
+        <div class="iconBtn" data-back="dashboard">‹</div>
+        <div style="flex:1">
           <div class="tbTitle">Meals</div>
-          <div class="tbSub" id="mealsDateLabel">—</div>
+          <div class="tbSub">Log calories & protein • save presets</div>
         </div>
-        <div class="iconBtn" data-nav="mealsAdd">🍴</div>
+        <div class="iconBtn" id="btnExport" title="Export/Import">↕️</div>
       </div>
 
-      <div class="card sectionPad">
-        <div id="mealSections"></div>
-
-        <div class="card" style="margin-top:12px;padding:12px;border-radius:22px;background:rgba(255,255,255,.04)">
-          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
-            <div style="font-weight:950">Saved Meals</div>
-            <button class="btnSm" id="saveMealPresetBtn">+ Save current</button>
+      <div class="content">
+        <div class="section card" style="padding:12px">
+          <div class="tbTitle">Add meal</div>
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input type="date" id="m_date">
+            </div>
+            <div>
+              <label>Meal name</label>
+              <input id="m_title" placeholder="Chicken & rice">
+            </div>
           </div>
-          <div class="tbSub" style="margin-top:6px">Tap a saved meal to auto-fill the form.</div>
-          <div class="pills" id="mealPresetPills" style="padding-left:0;padding-right:0;margin-top:8px"></div>
+          <div class="row">
+            <div>
+              <label>Calories</label>
+              <input id="m_cals" inputmode="numeric" placeholder="650">
+            </div>
+            <div>
+              <label>Protein (g)</label>
+              <input id="m_pro" inputmode="numeric" placeholder="45">
+            </div>
+          </div>
+          <label>Notes</label>
+          <textarea id="m_notes" placeholder="Optional…"></textarea>
+          <div class="btnRow">
+            <button class="btn amber" id="btnSaveMeal">Add</button>
+            <button class="btn" id="btnSavePreset">Save as preset</button>
+            <button class="btn danger" id="btnClearMeal">Clear</button>
+          </div>
         </div>
 
-
-        <div class="totalBar" id="mealsTotalBar">Total: —</div>
-
-        <div class="coachBox">
-          <div class="coachTitle">Coach's Notes</div>
-          <div class="coachNote" id="mealsCoachPreview">Write notes below…</div>
-          <label style="margin-top:10px">Coach notes (editable)</label>
-          <textarea id="coach_meals"></textarea>
+        <div class="section card" style="padding:12px; margin-top:10px">
+          <div class="tbTitle">Saved meals</div>
+          <div class="tbSub">Tap to auto-fill. Long-press to delete.</div>
+          <div class="pillRow" id="presetPills"></div>
         </div>
 
-        <div class="card" style="margin-top:12px;padding:12px;border-radius:22px;background:rgba(255,255,255,.04)">
-          <div style="font-weight:950;margin-bottom:8px">Add / Edit Meal</div>
-          <div class="formRow">
-            <div><label>Date</label><input id="m_date" type="date"></div>
-            <div><label>Title</label><input id="m_title" placeholder="Breakfast"></div>
-          </div>
-          <div class="formRow">
-            <div><label>Calories</label><input id="m_cals" inputmode="numeric"></div>
-            <div><label>Protein (g)</label><input id="m_prot" inputmode="numeric"></div>
-          </div>
-          <label>What you ate</label>
-          <textarea id="m_details"></textarea>
-          <div style="display:flex;gap:10px;margin-top:10px">
-            <button class="btnSm" id="m_cancel" style="display:none">Cancel</button>
-            <button class="btnSm" id="m_save" style="flex:1;background:var(--gradOrange);color:#140d2e;border:none">Add</button>
+        <div class="section card" style="padding:12px; margin-top:10px">
+          <div class="tbTitle">Today</div>
+          <div class="tbSub" id="mealsTodayMeta">—</div>
+          <div class="list" id="mealsList"></div>
+        </div>
+
+        <div class="section card" style="padding:12px; margin-top:10px">
+          <div class="tbTitle">Coach Notes</div>
+          <div class="tbSub">Optional nutrition reminders</div>
+          <textarea id="coach_meals" placeholder="E.g., add 30g protein to breakfast, keep snacks planned…"></textarea>
+          <div class="btnRow">
+            <button class="btn primary" id="saveCoachMeals">Save notes</button>
           </div>
         </div>
       </div>
     </div>
 
     <!-- WEIGHT -->
-    <div id="page-weight" class="page">
-      <div class="toolbar">
-        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
-        <div style="text-align:center;flex:1">
+    <div class="page" id="page-weight">
+      <div class="toolbar card">
+        <div class="iconBtn" data-back="dashboard">‹</div>
+        <div style="flex:1">
           <div class="tbTitle">Weight</div>
-          <div class="tbSub">Log weigh-ins</div>
+          <div class="tbSub">Quick weigh-in log</div>
         </div>
-        <div class="iconBtn" data-nav="weightAdd">⚖</div>
+        <div class="iconBtn">⚖️</div>
       </div>
-
-      <div class="card sectionPad">
-        <div class="formRow">
-          <div><label>Date</label><input id="w_date" type="date"></div>
-          <div><label>Weight (kg)</label><input id="w_kg" inputmode="decimal"></div>
+      <div class="content">
+        <div class="section card" style="padding:12px">
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input type="date" id="w_date">
+            </div>
+            <div>
+              <label>Weight (kg)</label>
+              <input id="w_kg" inputmode="decimal" placeholder="84.5">
+            </div>
+          </div>
+          <label>Notes</label>
+          <textarea id="w_notes" placeholder="Sleep, stress, salt, etc."></textarea>
+          <div class="btnRow">
+            <button class="btn pink" id="btnSaveWeight">Add</button>
+            <button class="btn danger" id="btnClearWeight">Clear</button>
+          </div>
+          <div class="list" id="weightList"></div>
         </div>
-        <label>Notes</label>
-        <input id="w_notes" placeholder="sleep, stress, salt…">
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="w_cancel" style="display:none">Cancel</button>
-          <button class="btnSm" id="w_save" style="flex:1;background:var(--gradBlue);color:#08112b;border:none">Add</button>
-        </div>
+      </div>
+    </div>
 
-        <div style="margin-top:12px" class="list" id="w_list"></div>
+    <!-- STEPS -->
+    <div class="page" id="page-steps">
+      <div class="toolbar card">
+        <div class="iconBtn" data-back="dashboard">‹</div>
+        <div style="flex:1">
+          <div class="tbTitle">Steps</div>
+          <div class="tbSub">Manual daily steps (target in Settings)</div>
+        </div>
+        <div class="iconBtn">👟</div>
+      </div>
+      <div class="content">
+        <div class="section card" style="padding:12px">
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input type="date" id="s_date">
+            </div>
+            <div>
+              <label>Steps</label>
+              <input id="s_steps" inputmode="numeric" placeholder="8000">
+            </div>
+          </div>
+          <div class="btnRow">
+            <button class="btn amber" id="btnSaveSteps">Add</button>
+            <button class="btn danger" id="btnClearSteps">Clear</button>
+          </div>
+          <div class="list" id="stepsList"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDIO -->
+    <div class="page" id="page-cardio">
+      <div class="toolbar card">
+        <div class="iconBtn" data-back="dashboard">‹</div>
+        <div style="flex:1">
+          <div class="tbTitle">Cardio</div>
+          <div class="tbSub">Runs / cardio sessions (pace auto)</div>
+        </div>
+        <div class="iconBtn">🏃</div>
+      </div>
+      <div class="content">
+        <div class="section card" style="padding:12px">
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input type="date" id="c_date">
+            </div>
+            <div>
+              <label>Type</label>
+              <select id="c_type">
+                <option>Run</option><option>Treadmill</option><option>Bike</option><option>Row</option><option>Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div>
+              <label>Distance (km)</label>
+              <input id="c_km" inputmode="decimal" placeholder="5.0">
+            </div>
+            <div>
+              <label>Time (mm:ss)</label>
+              <input id="c_time" placeholder="25:30">
+            </div>
+          </div>
+          <label>Notes</label>
+          <textarea id="c_notes" placeholder="Intervals, HR, route…"></textarea>
+          <div class="btnRow">
+            <button class="btn purple" id="btnSaveCardio">Add</button>
+            <button class="btn danger" id="btnClearCardio">Clear</button>
+          </div>
+          <div class="list" id="cardioList"></div>
+        </div>
       </div>
     </div>
 
     <!-- PROGRESS -->
-    <div id="page-progress" class="page">
-      <div class="toolbar">
-        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
-        <div style="text-align:center;flex:1">
+    <div class="page" id="page-progress">
+      <div class="toolbar card">
+        <div class="iconBtn" data-back="dashboard">‹</div>
+        <div style="flex:1">
           <div class="tbTitle">Progress</div>
-          <div class="tbSub">Waist + notes</div>
+          <div class="tbSub">Waist / photos notes / weekly check-in</div>
         </div>
         <div class="iconBtn">📈</div>
       </div>
-
-      <div class="card sectionPad">
-        <div class="formRow">
-          <div><label>Date</label><input id="p_date" type="date"></div>
-          <div><label>Waist (cm)</label><input id="p_waist" inputmode="numeric"></div>
-        </div>
-        <label>Photos (optional)</label>
-        <input id="p_photos">
-        <label>Notes</label>
-        <textarea id="p_notes"></textarea>
-        <div class="coachBox">
-          <div class="coachTitle">Suggested Improvements</div>
-          <label style="margin-top:10px">Coach notes (editable)</label>
-          <textarea id="coach_progress"></textarea>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="p_cancel" style="display:none">Cancel</button>
-          <button class="btnSm" id="p_save" style="flex:1;background:var(--gradRed);color:#140d2e;border:none">Add</button>
-        </div>
-
-        <div style="margin-top:12px" class="list" id="p_list"></div>
-      </div>
-    </div>
-
-    
-    <!-- STEPS -->
-    <div id="page-steps" class="page">
-      <div class="toolbar">
-        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
-        <div style="text-align:center;flex:1">
-          <div class="tbTitle">Steps</div>
-          <div class="tbSub">Manual daily log</div>
-        </div>
-        <div class="iconBtn">👟</div>
-      </div>
-
-      <div class="card sectionPad">
-        <div class="totalBar" id="stepsTotalBar">Today: —</div>
-
-        <div class="formRow" style="margin-top:10px">
-          <div><label>Date</label><input id="s_date" type="date"></div>
-          <div><label>Steps</label><input id="s_steps" inputmode="numeric" placeholder="8000"></div>
-        </div>
-
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="s_cancel" style="display:none">Cancel</button>
-          <button class="btnSm" id="s_save" style="flex:1;background:linear-gradient(135deg,#f7971e 0%, #ffd200 100%);color:#140d2e;border:none">Add</button>
-        </div>
-
-        <div style="margin-top:12px" class="list" id="s_list"></div>
-        <div class="small" style="margin-top:10px;opacity:.8">
-          Tip: enter your steps once per day (edit if you re-check later).
+      <div class="content">
+        <div class="section card" style="padding:12px">
+          <div class="row">
+            <div>
+              <label>Date</label>
+              <input type="date" id="p_date">
+            </div>
+            <div>
+              <label>Waist (cm)</label>
+              <input id="p_waist" inputmode="decimal" placeholder="—">
+            </div>
+          </div>
+          <label>Notes</label>
+          <textarea id="p_notes" placeholder="How you’re feeling, photos taken, strength PRs…"></textarea>
+          <div class="btnRow">
+            <button class="btn primary" id="btnSaveProg">Add</button>
+            <button class="btn danger" id="btnClearProg">Clear</button>
+          </div>
+          <div class="list" id="progList"></div>
         </div>
       </div>
     </div>
 
-
-    <!-- CARDIO -->
-    <div id="page-cardio" class="page">
-      <div class="toolbar">
-        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
-        <div style="text-align:center;flex:1">
-          <div class="tbTitle">Cardio</div>
-          <div class="tbSub">Runs / cardio sessions</div>
+    <!-- MODALS -->
+    <div class="modal" id="settingsModal">
+      <div class="sheet">
+        <div class="sheetTop">
+          <div>
+            <div class="sheetTitle">Settings</div>
+            <div class="tbSub">Targets & basics</div>
+          </div>
+          <div class="iconBtn" id="closeSettings">✕</div>
         </div>
-        <div class="iconBtn">🏃</div>
-      </div>
+        <div class="hr"></div>
 
-      <div class="card sectionPad">
-        <div class="totalBar" id="c_totalBar">This month: —</div>
+        <div class="row">
+          <div>
+            <label>Calorie target</label>
+            <input id="t_cal" inputmode="numeric" placeholder="2200">
+          </div>
+          <div>
+            <label>Protein target (g)</label>
+            <input id="t_pro" inputmode="numeric" placeholder="170">
+          </div>
+        </div>
 
-        <div class="formRow" style="margin-top:10px">
-          <div><label>Date</label><input id="c_date" type="date"></div>
-          <div><label>Type</label>
-            <select id="c_type">
-              <option value="Run">Run</option>
-              <option value="Treadmill">Treadmill</option>
-              <option value="Bike">Bike</option>
-              <option value="Row">Row</option>
-              <option value="Other">Other</option>
+        <div class="row">
+          <div>
+            <label>Steps target</label>
+            <input id="t_steps" inputmode="numeric" placeholder="8000">
+          </div>
+          <div>
+            <label>Workout schedule</label>
+            <select id="t_sched">
+              <option value="PPL">Push/Pull/Legs (3)</option>
+              <option value="PPLx2">PPL x2 (6)</option>
+              <option value="Custom">Custom</option>
             </select>
           </div>
         </div>
 
-        <div class="formRow" style="margin-top:10px">
-          <div><label>Distance (km)</label><input id="c_km" inputmode="decimal" placeholder="5"></div>
-          <div><label>Time (mm:ss)</label><input id="c_time" placeholder="25:30"></div>
+        <div class="btnRow">
+          <button class="btn primary" id="btnSaveSettings">Save</button>
+          <button class="btn danger" id="btnResetAll">Reset all data</button>
         </div>
 
-        <label>Notes</label>
-        <textarea id="c_notes" placeholder="Easy pace, intervals, HR, route…"></textarea>
-
-        <div style="display:flex;gap:10px;margin-top:10px">
-          <button class="btnSm" id="c_cancel" style="display:none">Cancel</button>
-          <button class="btnSm" id="c_save" style="flex:1;background:linear-gradient(135deg,#7f00ff 0%, #e100ff 100%);color:#fff;border:none">Add</button>
-        </div>
-
-        <div style="margin-top:12px" class="list" id="c_list"></div>
+        <div class="hr"></div>
+        <div class="tbSub muted">Everything is stored locally on your phone.</div>
       </div>
     </div>
 
-<!-- SETTINGS (simple modal) -->
-    <div class="card sectionPad hidden" id="settingsModal">
-      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
-        <div style="font-weight:950;font-size:18px">Settings</div>
-        <button class="btnSm" id="closeSettings">Close</button>
-      </div>
-      <label>Calories/day</label><input id="t_cal" inputmode="numeric">
-      <label>Protein/day (g)</label><input id="t_pro" inputmode="numeric">
-      <label>Steps/day target</label><input id="t_steps" inputmode="numeric" placeholder="8000">
-      <div class="formRow">
-        <div><label>Age</label><input id="age" inputmode="numeric"></div>
-        <div><label>Sex</label><select id="sex"><option value="male">Male</option><option value="female">Female</option></select></div>
-      </div>
-      <div class="formRow">
-        <div><label>Height (cm)</label><input id="heightCm" inputmode="numeric"></div>
-        <div><label>Weight (kg)</label><input id="weightKg" inputmode="decimal"></div>
-      </div>
-      <label>Gym days/week</label><input id="gymDays" inputmode="numeric">
-      <label>Goal text</label><input id="goal">
-      <div style="display:flex;gap:10px;margin-top:10px">
-        <button class="btnSm" id="saveSettings" style="flex:1;background:var(--gradOrange);color:#140d2e;border:none">Save</button>
+    <div class="modal" id="daysModal">
+      <div class="sheet">
+        <div class="sheetTop">
+          <div>
+            <div class="sheetTitle">Manage Workout Days</div>
+            <div class="tbSub">Create days and edit exercises (one per line)</div>
+          </div>
+          <div class="iconBtn" id="closeDays">✕</div>
+        </div>
+        <div class="hr"></div>
+
+        <label>Day</label>
+        <select id="daySelect"></select>
+
+        <div class="row">
+          <button class="btn" id="btnAddDay">+ Day</button>
+          <button class="btn danger" id="btnDelDay">Delete day</button>
+        </div>
+
+        <label>Day name</label>
+        <input id="dayName" placeholder="Push">
+
+        <label>Scheduled day (green ring)</label>
+        <select id="dayScheduled">
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+
+        <label>Exercises (one per line)</label>
+        <textarea id="dayExercises" placeholder="Bench Press&#10;Incline DB Press&#10;Shoulder Press"></textarea>
+
+        <div class="btnRow">
+          <button class="btn primary" id="btnSaveDay">Save changes</button>
+        </div>
       </div>
     </div>
 
+    <div class="modal" id="ioModal">
+      <div class="sheet">
+        <div class="sheetTop">
+          <div>
+            <div class="sheetTitle">Export / Import</div>
+            <div class="tbSub">Backup your local data</div>
+          </div>
+          <div class="iconBtn" id="closeIO">✕</div>
+        </div>
+        <div class="hr"></div>
+        <button class="btn primary" id="btnExportJson">Export (copy)</button>
+        <label style="margin-top:12px">Import JSON</label>
+        <textarea id="importBox" placeholder="Paste backup JSON here…"></textarea>
+        <div class="btnRow">
+          <button class="btn" id="btnImportJson">Import</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
   </div>
-</div>
 
 <script>
 (() => {
-  const APP_KEY="fitness_log_vibrant_v2_4b";
-  const todayISO=()=>new Date().toISOString().slice(0,10);
-  const uid=()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
-  const $=(id)=>document.getElementById(id);
-  const parseISO=(d)=>new Date(d+"T00:00:00");
-  const isSameMonth=(d,ref)=>{const a=parseISO(d),b=parseISO(ref);return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth();};
-  const safeParse=(raw)=>{try{return JSON.parse(raw)}catch{return null}};
-
-  const defaultStore=()=>({
-    profile:{age:30,sex:"male",heightCm:178,weightKg:84.5,gymDays:4,goal:"75kg with visible six-pack, then lean gain"},
-    targets:{calories:2200,proteinG:170,steps:8000},
-    weights:[], meals:[], savedMeals:[], progress:[], steps:[], cardio:[],
-    coach:{meals:"",workouts:"",progress:""},
-    workoutDays:[
-      {id:"push",name:"Push",notes:"",scheduled:[1,4],exercises:[{name:"Bench Press",defaultSets:3},{name:"Overhead Press",defaultSets:3},{name:"Tricep Extensions",defaultSets:3}]},
-      {id:"pull",name:"Pull",notes:"",scheduled:[2,5],exercises:[{name:"Lat Pulldown",defaultSets:3},{name:"Row",defaultSets:3},{name:"Biceps Curl",defaultSets:3}]},
-      {id:"legs",name:"Legs",notes:"",scheduled:[3,6],exercises:[{name:"Squat",defaultSets:3},{name:"RDL",defaultSets:3},{name:"Leg Press",defaultSets:3}]}
-    ],
-    workouts:[]
-  });
-
-  let store = safeParse(localStorage.getItem(APP_KEY)) || defaultStore();
-  const save=()=>localStorage.setItem(APP_KEY, JSON.stringify(store));
-
-  // --- Navigation ---
+  const VERSION = "fresh-v1";
+  const KEY = "fitness_log_fresh_v1";
+  const $ = (id)=>document.getElementById(id);
   const pages = {
     dashboard: $("page-dashboard"),
     workouts: $("page-workouts"),
     meals: $("page-meals"),
     weight: $("page-weight"),
-    progress: $("page-progress"),
     steps: $("page-steps"),
     cardio: $("page-cardio"),
+    progress: $("page-progress"),
   };
 
-  function setPage(name){
-    Object.entries(pages).forEach(([k,el])=>el.classList.toggle("active", k===name));
-    // Hide overlays on nav
-    $("settingsModal").classList.add("hidden");
-    $("manageDaysSheet").classList.add("hidden");
-    if(name==="dashboard") renderDashboard();
-    if(name==="meals") renderMealsPage();
-    if(name==="weight") renderWeightPage();
-    if(name==="progress") renderProgressPage();
-    if(name==="steps") renderStepsPage();
-    if(name==="cardio") renderCardioPage();
-    if(name==="workouts"){ renderWorkoutDays(); showWorkoutDaysView(); }
-  }
+  const uid = () => Math.random().toString(36).slice(2,10) + Date.now().toString(36);
+  const todayISO = () => new Date().toISOString().slice(0,10);
+  const isSameWeek = (d1, d2) => {
+    // ISO week-ish: compare Monday start
+    const a = new Date(d1), b = new Date(d2);
+    const monday = (dt)=>{
+      const x = new Date(dt);
+      const day = (x.getDay()+6)%7; // Mon=0
+      x.setDate(x.getDate()-day);
+      x.setHours(0,0,0,0);
+      return x;
+    };
+    return monday(a).getTime() === monday(b).getTime();
+  };
+  const isSameMonth = (d1, d2) => String(d1||"").slice(0,7) === String(d2||"").slice(0,7);
 
-  document.querySelectorAll("[data-nav]").forEach(el=>{
-    el.addEventListener("click", ()=> {
-      const nav = el.getAttribute("data-nav");
-      if(nav && pages[nav]) setPage(nav);
-    });
+  const defaultStore = () => ({
+    version: VERSION,
+    targets: { calories: 2200, proteinG: 170, steps: 8000 },
+    coach: { workouts: "", meals: "" },
+    weights: [],
+    meals: [],
+    savedMeals: [],
+    steps: [],
+    cardio: [],
+    progress: [],
+    workoutDays: [
+      { id: uid(), name: "Push", scheduled: true, exercises: ["Bench Press","Incline DB Press","Shoulder Press","Triceps Pushdown"] },
+      { id: uid(), name: "Pull", scheduled: true, exercises: ["Lat Pulldown","Barbell Row","Face Pull","Biceps Curl"] },
+      { id: uid(), name: "Legs", scheduled: true, exercises: ["Squat","RDL","Leg Press","Calf Raise"] },
+    ],
+    workoutHistory: [] // {id, dayId, date, exercises:[{name, sets:[{reps,kg}]}]}
+  });
+
+  const load = () => {
+    try{
+      const raw = localStorage.getItem(KEY);
+      if(!raw) return defaultStore();
+      const s = JSON.parse(raw);
+      return { ...defaultStore(), ...s, targets:{...defaultStore().targets, ...(s.targets||{})}, coach:{...defaultStore().coach, ...(s.coach||{})} };
+    }catch(e){
+      console.warn("load failed", e);
+      return defaultStore();
+    }
+  };
+  let store = load();
+  const save = () => localStorage.setItem(KEY, JSON.stringify(store));
+
+  // Toast
+  let toastT=null;
+  const toast = (msg) => {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("on");
+    clearTimeout(toastT);
+    toastT = setTimeout(()=>t.classList.remove("on"), 2200);
+  };
+
+  // Navigation
+  const setPage = (name) => {
+    Object.values(pages).forEach(p=>p.classList.remove("active"));
+    pages[name].classList.add("active");
+    if(name==="dashboard") renderDashboard();
+    if(name==="workouts") renderWorkouts();
+    if(name==="meals") renderMeals();
+    if(name==="weight") renderWeight();
+    if(name==="steps") renderSteps();
+    if(name==="cardio") renderCardio();
+    if(name==="progress") renderProgress();
+  };
+
+  document.querySelectorAll("[data-go]").forEach(el=>{
+    el.addEventListener("click", ()=> setPage(el.getAttribute("data-go")));
   });
   document.querySelectorAll("[data-back]").forEach(el=>{
     el.addEventListener("click", ()=> setPage(el.getAttribute("data-back")));
   });
 
-  // --- Settings ---
-  function fillSettings(){
-    $("t_cal").value=store.targets.calories||"";
-    $("t_pro").value=store.targets.proteinG||"";
-    $("t_steps").value=store.targets.steps||"";
-    $("age").value=store.profile.age||"";
-    $("sex").value=store.profile.sex||"male";
-    $("heightCm").value=store.profile.heightCm||"";
-    $("weightKg").value=store.profile.weightKg||"";
-    $("gymDays").value=store.profile.gymDays||"";
-    $("goal").value=store.profile.goal||"";
-  }
-  function openSettings(){
-    fillSettings();
-    $("settingsModal").classList.remove("hidden");
-    window.scrollTo(0,0);
-  }
+  // Settings modal
+  const openSettings = () => {
+    $("t_cal").value = store.targets.calories ?? "";
+    $("t_pro").value = store.targets.proteinG ?? "";
+    $("t_steps").value = store.targets.steps ?? "";
+    $("t_sched").value = "Custom";
+    $("settingsModal").classList.add("on");
+  };
   $("btnSettings").addEventListener("click", openSettings);
-  $("closeSettings").addEventListener("click", ()=> $("settingsModal").classList.add("hidden"));
-  $("saveSettings").addEventListener("click", ()=>{
-    const c=Number($("t_cal").value), p=Number($("t_pro").value), s=Number($("t_steps").value);
-    if(Number.isFinite(c)&&c>0) store.targets.calories=c;
-    if(Number.isFinite(p)&&p>0) store.targets.proteinG=p;
-    if(Number.isFinite(s)&&s>0) store.targets.steps=s;
-    store.profile.age=Number($("age").value)||store.profile.age;
-    store.profile.sex=$("sex").value||store.profile.sex;
-    store.profile.heightCm=Number($("heightCm").value)||store.profile.heightCm;
-    store.profile.weightKg=Number($("weightKg").value)||store.profile.weightKg;
-    store.profile.gymDays=Math.max(0, Math.min(7, Number($("gymDays").value)||store.profile.gymDays));
-    store.profile.goal=$("goal").value.trim()||store.profile.goal;
+  $("closeSettings").addEventListener("click", ()=> $("settingsModal").classList.remove("on"));
+  $("btnSaveSettings").addEventListener("click", ()=>{
+    const c = Number($("t_cal").value);
+    const p = Number($("t_pro").value);
+    const s = Number($("t_steps").value);
+    if(Number.isFinite(c) && c>0) store.targets.calories = Math.round(c);
+    if(Number.isFinite(p) && p>0) store.targets.proteinG = Math.round(p);
+    if(Number.isFinite(s) && s>0) store.targets.steps = Math.round(s);
     save();
-    $("settingsModal").classList.add("hidden");
+    $("settingsModal").classList.remove("on");
     renderDashboard();
-    alert("Saved!");
+    toast("Saved settings");
+  });
+  $("btnResetAll").addEventListener("click", ()=>{
+    if(!confirm("Reset ALL data? This cannot be undone.")) return;
+    store = defaultStore();
+    save();
+    $("settingsModal").classList.remove("on");
+    setPage("dashboard");
+    toast("Reset complete");
   });
 
-  // --- Dashboard date label ---
-  const fmtDate = (d) => {
-    const dt = new Date(d+"T00:00:00");
-    return dt.toLocaleDateString(undefined, { weekday:"long", month:"long", day:"numeric" });
+  // --- Dashboard ---
+  const sumMeals = (date) => {
+    const m = store.meals.filter(x=>x.date===date);
+    const c = m.reduce((a,b)=>a+(Number(b.calories)||0),0);
+    const p = m.reduce((a,b)=>a+(Number(b.proteinG)||0),0);
+    return {c,p,count:m.length};
   };
-  $("dashDate").textContent = fmtDate(todayISO());
-
-  // --- Rings + widgets ---
-  function ringSet(el, p, col){
-    el.style.setProperty("--p", String(Math.max(0,Math.min(1,p))));
-    el.style.setProperty("--col", col);
+  const workoutsThisWeek = () => {
+    const t = todayISO();
+    const uniq = new Set(store.workoutHistory.filter(w=>isSameWeek(w.date,t)).map(w=>w.id));
+    return uniq.size;
+  };
+  function setRing(circleId, progress){
+    const c = $(circleId);
+    const r = 38;
+    const circ = 2*Math.PI*r;
+    const pct = Math.max(0, Math.min(1, progress));
+    c.setAttribute("stroke-dasharray", `${(pct*circ).toFixed(2)} ${(circ).toFixed(2)}`);
   }
-  function mslBmrKgCm(age, sex, heightCm, weightKg){
-    const s = sex==="male" ? 5 : -161;
-    return 10*weightKg + 6.25*heightCm - 5*age + s;
-  }
-  function activityFactor(gymDays){
-    if(gymDays<=1) return 1.35;
-    if(gymDays==2) return 1.45;
-    if(gymDays==3) return 1.55;
-    if(gymDays==4) return 1.60;
-    if(gymDays==5) return 1.70;
-    return 1.75;
-  }
-  function workoutsThisWeek(){
-    const now = new Date();
-    const day = now.getDay(); // 0 Sun
-    const diff = (day+6)%7; // Monday start
-    const monday = new Date(now);
-    monday.setDate(now.getDate()-diff);
-    monday.setHours(0,0,0,0);
-    return store.workouts.filter(w=>{
-      const dt = new Date(w.date+"T00:00:00");
-      return dt >= monday;
-    }).length;
-  }
-
   function renderDashboard(){
-    // Weight tile
-    const lastW = [...store.weights].sort((a,b)=>a.date<b.date?1:-1)[0];
-    $("dashWeight").textContent = lastW ? Number(lastW.weightKg).toFixed(1) : "—";
+    const t = todayISO();
+    $("brandSub").textContent = `Local tracker • ${t}`;
+    // workouts
+    const w = workoutsThisWeek();
+    $("dashWorkouts").textContent = String(w);
+    $("dashWorkoutSub").textContent = `This week: ${w}`;
 
-    // Meals tile
+    // meals cals left
+    const {c,p} = sumMeals(t);
+    const tC = Number(store.targets.calories||0);
+    const tP = Number(store.targets.proteinG||0);
+    const left = (tC>0) ? (tC - c) : 0;
+    $("dashCalsLeft").textContent = (tC>0) ? String(Math.max(0,left)) : String(c);
+    $("dashCalsLeftLabel").textContent = (tC>0) ? (left>=0 ? "Left" : "Over") : "Logged";
+    $("dashCalsConsumed").textContent = String(c);
+    // ring meta
+    $("calMeta").textContent = tC>0 ? `Target ${tC}` : "Set target in Settings";
+    $("proMeta").textContent = tP>0 ? `Target ${tP}g` : "Set target in Settings";
+    $("calVal").textContent = String(c);
+    $("calTarget").textContent = String(tC||0);
+    $("proVal").textContent = String(p);
+    $("proTarget").textContent = String(tP||0);
+    setRing("calRing", tC>0 ? c/tC : 0);
+    setRing("proRing", tP>0 ? p/tP : 0);
+
+    // weight
+    const lastW = store.weights.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+    $("dashWeight").textContent = lastW ? `${Number(lastW.kg).toFixed(1)} kg` : "—";
+    $("dashWeightSub").textContent = lastW ? `Last: ${lastW.date}` : "Last: —";
+
+    // steps
+    const st = Number(store.targets.steps||0);
+    const sEntry = store.steps.find(x=>x.date===t);
+    const sVal = sEntry ? Number(sEntry.steps)||0 : 0;
+    $("dashSteps").textContent = String(sVal);
+    $("dashStepsSub").textContent = st>0 ? `Target: ${st}` : "Target: —";
+
+    // cardio
+    const month = store.cardio.filter(x=>x.date && isSameMonth(x.date,t));
+    const km = month.reduce((a,b)=>a+(Number(b.km)||0),0);
+    $("dashCardio").textContent = String(month.length);
+    $("dashCardioKm").textContent = km.toFixed(1);
+
+    // progress
+    $("dashProgCount").textContent = String(store.progress.length||0);
+  }
+
+  // --- Workouts ---
+  let activeDayId = null;
+  let activeEx = null; // name
+  let sessionToday = null; // {dayId,date,exercises:...}
+  let restTimer = { running:false, endAt:0, interval:null, totalSec:180 };
+  const beep = async () => {
+    try{
+      const ctx = new (window.AudioContext||window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type="sine"; o.frequency.value=880;
+      o.connect(g); g.connect(ctx.destination);
+      g.gain.value=0.001;
+      o.start();
+      const start = ctx.currentTime;
+      g.gain.exponentialRampToValueAtTime(0.35, start+0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, start+2.0);
+      o.stop(start+2.05);
+      setTimeout(()=>ctx.close(), 2200);
+    }catch(e){}
+  };
+  const fmtMMSS = (sec) => {
+    const s = Math.max(0, Math.floor(sec));
+    const m = Math.floor(s/60);
+    const r = s%60;
+    return `${String(m).padStart(2,"0")}:${String(r).padStart(2,"0")}`;
+  };
+  const restRender = () => {
+    const now = Date.now();
+    let remain = restTimer.running ? Math.max(0, Math.ceil((restTimer.endAt-now)/1000)) : restTimer.totalSec;
+    $("restTime").textContent = fmtMMSS(remain);
+    $("restState").textContent = restTimer.running ? "Rest running…" : "Rest timer";
+  };
+  const restStop = () => {
+    restTimer.running=false;
+    if(restTimer.interval){ clearInterval(restTimer.interval); restTimer.interval=null; }
+    restRender();
+  };
+  $("restStart").addEventListener("click", ()=>{
+    restTimer.totalSec = 180;
+    restTimer.running=true;
+    restTimer.endAt = Date.now() + restTimer.totalSec*1000;
+    if(restTimer.interval) clearInterval(restTimer.interval);
+    restTimer.interval = setInterval(()=>{
+      const remain = Math.ceil((restTimer.endAt-Date.now())/1000);
+      if(remain<=0){
+        restStop();
+        beep();
+      } else {
+        restRender();
+      }
+    }, 250);
+    restRender();
+  });
+  $("restReset").addEventListener("click", ()=>{ restStop(); });
+
+  function getDay(dayId){ return store.workoutDays.find(d=>d.id===dayId); }
+  function lastSessionForDay(dayId){
+    return store.workoutHistory
+      .filter(w=>w.dayId===dayId)
+      .slice()
+      .sort((a,b)=>a.date<b.date?1:-1)[0] || null;
+  }
+  function ensureTodaySession(dayId){
+    const t = todayISO();
+    // temp session not saved until user saves
+    if(sessionToday && sessionToday.dayId===dayId && sessionToday.date===t) return sessionToday;
+    const day = getDay(dayId);
+    const ex = day.exercises.map(name=>({name, sets:[{reps:"",kg:""},{reps:"",kg:""},{reps:"",kg:""}]}));
+    sessionToday = { id: uid(), dayId, date:t, exercises: ex };
+    return sessionToday;
+  }
+  function renderDayPills(){
+    const wrap = $("dayPills");
+    wrap.innerHTML = "";
+    store.workoutDays.forEach(d=>{
+      const p = document.createElement("div");
+      p.className = "pill" + (d.scheduled ? " on" : "");
+      p.textContent = d.name;
+      p.onclick = ()=> {
+        activeDayId = d.id;
+        activeEx = null;
+        sessionToday = null;
+        renderWorkouts();
+      };
+      wrap.append(p);
+    });
+    if(!store.workoutDays.length){
+      const e = document.createElement("div");
+      e.className="muted";
+      e.textContent="No days yet. Tap 🗓️ to add.";
+      wrap.append(e);
+    }
+  }
+  function renderExPills(day){
+    const wrap = $("exPills");
+    wrap.innerHTML = "";
+    day.exercises.forEach(name=>{
+      const p = document.createElement("div");
+      p.className = "pill" + (activeEx===name ? " on" : "");
+      p.textContent = name;
+      p.onclick = ()=>{
+        activeEx = name;
+        $("sessionArea").style.display="block";
+        restStop();
+        restRender();
+        renderSetTable();
+      };
+      wrap.append(p);
+    });
+    if(!day.exercises.length){
+      const e = document.createElement("div");
+      e.className="muted";
+      e.textContent="No exercises. Tap 🗓️ to add.";
+      wrap.append(e);
+    }
+  }
+  function getExerciseObj(session, name){
+    return session.exercises.find(e=>e.name===name);
+  }
+  function renderSetTable(){
+    const day = getDay(activeDayId);
+    const t = todayISO();
+    const session = ensureTodaySession(activeDayId);
+    const ex = getExerciseObj(session, activeEx);
+    $("woDayTitle").textContent = `${day.name} • ${t}`;
+    $("woDaySub").textContent = `Exercises: ${day.exercises.length}`;
+    $("exTitle").textContent = activeEx;
+
+    // last session
+    const last = lastSessionForDay(activeDayId);
+    const lastEx = last ? last.exercises.find(e=>e.name===activeEx) : null;
+    const lastSets = lastEx ? lastEx.sets : [];
+
+    const tbody = $("setTbody");
+    tbody.innerHTML = "";
+    const sets = ex.sets;
+    for(let i=0;i<sets.length;i++){
+      const tr = document.createElement("tr");
+      const lastText = lastSets[i] ? `${lastSets[i].reps||"—"} x ${lastSets[i].kg||"—"}kg` : "—";
+      tr.innerHTML = `
+        <td>${i+1}</td>
+        <td class="lock">${lastText}</td>
+        <td>
+          <div style="display:flex; gap:8px">
+            <input aria-label="reps" class="todayReps" inputmode="numeric" placeholder="reps" value="${sets[i].reps||""}" style="padding:10px 10px;border-radius:14px">
+            <input aria-label="kg" class="todayKg" inputmode="decimal" placeholder="kg" value="${sets[i].kg||""}" style="padding:10px 10px;border-radius:14px">
+          </div>
+        </td>`;
+      tbody.append(tr);
+    }
+    // wire inputs
+    [...tbody.querySelectorAll("tr")].forEach((tr, idx)=>{
+      tr.querySelector(".todayReps").addEventListener("input", (e)=>{ ex.sets[idx].reps = e.target.value; });
+      tr.querySelector(".todayKg").addEventListener("input", (e)=>{ ex.sets[idx].kg = e.target.value; });
+    });
+  }
+  $("btnAddSet").addEventListener("click", ()=>{
+    if(!activeDayId || !activeEx) return toast("Pick a day and exercise first");
+    const session = ensureTodaySession(activeDayId);
+    const ex = getExerciseObj(session, activeEx);
+    ex.sets.push({reps:"",kg:""});
+    renderSetTable();
+  });
+  $("btnDelSet").addEventListener("click", ()=>{
+    if(!activeDayId || !activeEx) return;
+    const session = ensureTodaySession(activeDayId);
+    const ex = getExerciseObj(session, activeEx);
+    if(ex.sets.length<=1) return;
+    ex.sets.pop();
+    renderSetTable();
+  });
+  $("btnSaveWorkout").addEventListener("click", ()=>{
+    if(!activeDayId) return toast("Pick a day first");
+    const session = ensureTodaySession(activeDayId);
+
+    // basic cleanup: keep sets where either reps or kg entered
+    session.exercises.forEach(e=>{
+      e.sets = e.sets.filter(s=>String(s.reps||"").trim()!=="" || String(s.kg||"").trim()!=="");
+      if(!e.sets.length) e.sets = [{reps:"",kg:""}];
+    });
+
+    // store copy
+    const entry = JSON.parse(JSON.stringify(session));
+    store.workoutHistory.unshift(entry);
+    save();
+    toast("Workout saved");
+    renderDashboard();
+  });
+
+  // Coach workouts notes
+  function renderCoach(){
+    $("coach_workouts").value = store.coach.workouts || "";
+    $("coach_meals").value = store.coach.meals || "";
+  }
+  $("saveCoachWorkouts").addEventListener("click", ()=>{
+    store.coach.workouts = $("coach_workouts").value.trim();
+    save();
+    toast("Saved coach notes");
+  });
+  $("saveCoachMeals").addEventListener("click", ()=>{
+    store.coach.meals = $("coach_meals").value.trim();
+    save();
+    toast("Saved coach notes");
+  });
+
+  function renderWorkouts(){
+    renderCoach();
+    renderDayPills();
+    const day = activeDayId ? getDay(activeDayId) : null;
+    if(!day){
+      $("woDayTitle").textContent = "Select a day";
+      $("woDaySub").textContent = "Tap a day above";
+      $("exPills").innerHTML = "";
+      $("sessionArea").style.display="none";
+      return;
+    }
+    renderExPills(day);
+    $("woDayTitle").textContent = day.name;
+    $("woDaySub").textContent = day.scheduled ? "Scheduled day" : "Optional day";
+    $("sessionArea").style.display = activeEx ? "block" : "none";
+    if(activeEx) { restRender(); renderSetTable(); }
+  }
+
+  // Manage workout days modal
+  const openDays = ()=> { renderDaysModal(); $("daysModal").classList.add("on"); };
+  const closeDays = ()=> $("daysModal").classList.remove("on");
+  $("btnManageDays").addEventListener("click", openDays);
+  $("closeDays").addEventListener("click", closeDays);
+
+  function renderDaysModal(){
+    const sel = $("daySelect");
+    sel.innerHTML = "";
+    store.workoutDays.forEach(d=>{
+      const opt = document.createElement("option");
+      opt.value = d.id;
+      opt.textContent = d.name;
+      sel.append(opt);
+    });
+    if(!store.workoutDays.length){
+      const opt = document.createElement("option");
+      opt.value = "";
+      opt.textContent = "No days yet";
+      sel.append(opt);
+    }
+    sel.value = store.workoutDays[0]?.id || "";
+    fillDayFields(sel.value);
+  }
+  function fillDayFields(dayId){
+    const d = store.workoutDays.find(x=>x.id===dayId);
+    if(!d){
+      $("dayName").value="";
+      $("dayExercises").value="";
+      $("dayScheduled").value="yes";
+      return;
+    }
+    $("dayName").value = d.name;
+    $("dayScheduled").value = d.scheduled ? "yes" : "no";
+    $("dayExercises").value = (d.exercises||[]).join("\n");
+  }
+  $("daySelect").addEventListener("change", (e)=> fillDayFields(e.target.value));
+
+  $("btnAddDay").addEventListener("click", ()=>{
+    const name = prompt("Day name:", "New Day");
+    if(!name) return;
+    const d = { id: uid(), name: name.trim(), scheduled:false, exercises: [] };
+    store.workoutDays.push(d);
+    save();
+    renderDaysModal();
+    toast("Added day");
+  });
+  $("btnDelDay").addEventListener("click", ()=>{
+    const id = $("daySelect").value;
+    if(!id) return;
+    const d = store.workoutDays.find(x=>x.id===id);
+    if(!confirm(`Delete ${d?.name||"this day"}?`)) return;
+    store.workoutDays = store.workoutDays.filter(x=>x.id!==id);
+    // If active day removed
+    if(activeDayId===id){ activeDayId=null; activeEx=null; sessionToday=null; }
+    save();
+    renderDaysModal();
+    renderWorkouts();
+    toast("Deleted day");
+  });
+  $("btnSaveDay").addEventListener("click", ()=>{
+    const id = $("daySelect").value;
+    const d = store.workoutDays.find(x=>x.id===id);
+    if(!d) return;
+    d.name = $("dayName").value.trim() || d.name;
+    d.scheduled = $("dayScheduled").value==="yes";
+    const lines = $("dayExercises").value.split("\n").map(x=>x.trim()).filter(Boolean);
+    d.exercises = lines;
+    save();
+    renderDaysModal();
+    renderWorkouts();
+    toast("Saved day");
+  });
+
+  // --- Meals ---
+  function clearMealForm(){
+    $("m_date").value = todayISO();
+    $("m_title").value = "";
+    $("m_cals").value = "";
+    $("m_pro").value = "";
+    $("m_notes").value = "";
+  }
+  $("btnClearMeal").addEventListener("click", clearMealForm);
+
+  function renderPresets(){
+    const wrap = $("presetPills");
+    wrap.innerHTML = "";
+    const presets = store.savedMeals || [];
+    if(!presets.length){
+      const m = document.createElement("div");
+      m.className="muted";
+      m.textContent="No saved meals yet";
+      wrap.append(m);
+      return;
+    }
+    presets.forEach(p=>{
+      const el = document.createElement("div");
+      el.className="pill";
+      el.textContent = p.name;
+      // tap = fill
+      el.addEventListener("click", ()=>{
+        $("m_title").value = p.title || p.name;
+        $("m_cals").value = p.calories ?? "";
+        $("m_pro").value = p.proteinG ?? "";
+        $("m_notes").value = p.notes ?? "";
+        toast("Filled meal");
+      });
+      // long press to delete
+      let pressT=null;
+      el.addEventListener("touchstart", ()=>{
+        pressT = setTimeout(()=>{
+          if(confirm(`Delete preset "${p.name}"?`)){
+            store.savedMeals = store.savedMeals.filter(x=>x.id!==p.id);
+            save();
+            renderPresets();
+            toast("Deleted preset");
+          }
+        }, 650);
+      }, {passive:true});
+      el.addEventListener("touchend", ()=>{ if(pressT) clearTimeout(pressT); pressT=null; }, {passive:true});
+      wrap.append(el);
+    });
+  }
+
+  $("btnSavePreset").addEventListener("click", ()=>{
+    const title = $("m_title").value.trim();
+    if(!title) return alert("Enter a meal name first.");
+    const name = prompt("Save preset as:", title) || "";
+    const clean = name.trim();
+    if(!clean) return;
+    const calories = $("m_cals").value.trim()==="" ? undefined : Number($("m_cals").value);
+    const proteinG = $("m_pro").value.trim()==="" ? undefined : Number($("m_pro").value);
+    const notes = $("m_notes").value.trim();
+    store.savedMeals = store.savedMeals || [];
+    // overwrite by name
+    store.savedMeals = store.savedMeals.filter(p=>p.name.toLowerCase() !== clean.toLowerCase());
+    store.savedMeals.push({ id: uid(), name: clean, title, calories: Number.isFinite(calories)?Math.round(calories):undefined, proteinG:Number.isFinite(proteinG)?Math.round(proteinG):undefined, notes: notes||undefined });
+    save();
+    renderPresets();
+    toast("Saved preset");
+  });
+
+  $("btnSaveMeal").addEventListener("click", ()=>{
+    const date = $("m_date").value || todayISO();
+    const title = $("m_title").value.trim();
+    const calories = Number($("m_cals").value);
+    const proteinG = Number($("m_pro").value);
+    if(!title) return alert("Meal name required.");
+    if(!Number.isFinite(calories) && !Number.isFinite(proteinG)) return alert("Enter calories and/or protein.");
+    store.meals.unshift({
+      id: uid(),
+      date,
+      title,
+      calories: Number.isFinite(calories)?Math.round(calories):0,
+      proteinG: Number.isFinite(proteinG)?Math.round(proteinG):0,
+      notes: $("m_notes").value.trim() || ""
+    });
+    save();
+    toast("Added meal");
+    renderMeals();
+    renderDashboard();
+    clearMealForm();
+  });
+
+  function renderMeals(){
+    renderCoach();
+    $("m_date").value = $("m_date").value || todayISO();
+    renderPresets();
+
     const t = todayISO();
     const todays = store.meals.filter(m=>m.date===t);
-    const cals = todays.reduce((s,m)=>s+(Number(m.calories)||0),0);
-    $("dashMeals").textContent = (tC>0) ? String(Math.max(0, tC - cals)).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : String(cals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    const totalC = todays.reduce((a,b)=>a+(Number(b.calories)||0),0);
+    const totalP = todays.reduce((a,b)=>a+(Number(b.proteinG)||0),0);
+    const tC = Number(store.targets.calories||0);
+    const left = tC>0 ? (tC - totalC) : 0;
+    $("mealsTodayMeta").textContent = tC>0
+      ? `Consumed ${totalC} Cal • ${Math.max(0,left)} left • Protein ${totalP}g`
+      : `Consumed ${totalC} Cal • Protein ${totalP}g`;
 
-    // Workouts tile
-    $("dashWorkouts").textContent = String(workoutsThisWeek());
-
-
-    // Steps tile
-    const stepTarget = Number(store.targets?.steps||0);
-    const today = todayISO();
-    const todayEntry = (store.steps||[]).find(s=>s.date===today);
-    const todaySteps = todayEntry ? Number(todayEntry.steps)||0 : 0;
-    if(document.getElementById("dashSteps")){
-      document.getElementById("dashSteps").textContent = String(todaySteps);
-      document.getElementById("dashStepsSub").textContent = stepTarget ? `Target: ${stepTarget}` : "Set target in Settings";
-    }
-
-
-    // Cardio tile (this month)
-    const monthCardio = (store.cardio||[]).filter(c=>c.date && isSameMonth(c.date, today));
-    const monthCount = monthCardio.length;
-    const monthKm = monthCardio.reduce((s,x)=>s+(Number(x.km)||0),0);
-    if(document.getElementById("dashCardio")){
-      document.getElementById("dashCardio").textContent = String(monthCount);
-      document.getElementById("dashCardioSub").textContent = monthCount ? `${monthKm.toFixed(1)} km this month` : "No cardio logged";
-    }
-
-
-    // Rings
-    const tC=Number(store.targets?.calories||0), tP=Number(store.targets?.proteinG||0);
-    const prot = todays.reduce((s,m)=>s+(Number(m.proteinG)||0),0);
-
-    if(tC>0){
-      const ratio=cals/tC;
-      let col="rgba(245,158,11,.95)";
-      if(ratio>=0.85 && ratio<=1.10) col="rgba(34,197,94,.95)";
-      if(ratio>1.10) col="rgba(239,68,68,.95)";
-      ringSet($("calRing"), Math.min(1,ratio), col);
-      $("calBig").textContent = `${cals}/${tC}`;
-      $("calSub").textContent = ratio<=1.10 ? "On track" : "Over target";
-    } else {
-      ringSet($("calRing"), 0, "rgba(245,158,11,.95)");
-      $("calBig").textContent = "—";
-      $("calSub").textContent = "Set target";
-    }
-
-    if(tP>0){
-      const ratio=prot/tP;
-      let col="rgba(239,68,68,.95)";
-      if(ratio>=0.70 && ratio<1.0) col="rgba(245,158,11,.95)";
-      if(ratio>=1.0) col="rgba(34,197,94,.95)";
-      ringSet($("protRing"), Math.min(1,ratio), col);
-      $("protBig").textContent = `${prot}/${tP}`;
-      $("protSub").textContent = ratio>=1 ? "Target hit" : "Keep going";
-    } else {
-      ringSet($("protRing"), 0, "rgba(239,68,68,.95)");
-      $("protBig").textContent = "—";
-      $("protSub").textContent = "Set target";
-    }
-
-    // Expected change using last 7 day avg cals
-    const byDate=new Map();
-    store.meals.forEach(m=>{
-      if(!m.date) return;
-      const cur=byDate.get(m.date)||{cals:0,has:false};
-      if(m.calories!=null && m.calories!==""){cur.cals+=Number(m.calories); cur.has=true;}
-      byDate.set(m.date,cur);
-    });
-    const dates=[...byDate.keys()].sort();
-    const last7 = dates.filter(d=>byDate.get(d).has).slice(-7);
-    if(last7.length>=7){
-      const avgCals = Math.round(last7.reduce((s,d)=>s+byDate.get(d).cals,0)/7);
-      const p = store.profile;
-      const baseW = lastW ? Number(lastW.weightKg) : Number(p.weightKg)||84.5;
-      const bmr = mslBmrKgCm(Number(p.age)||30, p.sex||"male", Number(p.heightCm)||178, baseW);
-      const tdee = Math.round(bmr * activityFactor(Number(p.gymDays)||4));
-      const deficitPerDay = tdee - avgCals;
-      const kgPerWeek = (deficitPerDay*7) / 7700;
-      const abs = Math.max(0, Math.min(1, Math.abs(kgPerWeek)/1.0));
-      let col="rgba(245,158,11,.95)";
-      if(kgPerWeek < 0) col="rgba(239,68,68,.95)";
-      else if(kgPerWeek >= 0.25 && kgPerWeek <= 0.75) col="rgba(34,197,94,.95)";
-      else if(kgPerWeek > 0.75) col="rgba(239,68,68,.95)";
-      ringSet($("lossRing"), abs, col);
-      $("lossBig").textContent = `${(Math.round(kgPerWeek*10)/10).toFixed(1)}`;
-      $("lossSub").textContent = "kg / week";
-    } else {
-      ringSet($("lossRing"), 0, "rgba(255,255,255,.20)");
-      $("lossBig").textContent = "—";
-      $("lossSub").textContent = "Needs 7 days";
-    }
-  }
-
-  // --- Weight page ---
-  let w_edit=null;
-  function renderWeightPage(){
-    $("w_date").value=todayISO();
-    $("w_list").innerHTML="";
-    const sorted=[...store.weights].sort((a,b)=>a.date<b.date?1:-1);
-    sorted.forEach(e=>{
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">${Number(e.weightKg).toFixed(1)} kg</div>
-                       <div class="itemMeta">${e.date}</div>
-                       ${e.notes?`<div class="itemBody">${e.notes}</div>`:""}`;
-      const acts=document.createElement("div"); acts.className="itemActions";
-      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-      b1.onclick=()=>{w_edit=e.id; $("w_date").value=e.date; $("w_kg").value=e.weightKg; $("w_notes").value=e.notes||""; $("w_cancel").style.display="inline-block"; $("w_save").textContent="Save";};
-      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-      b2.onclick=()=>{store.weights=store.weights.filter(x=>x.id!==e.id); save(); renderWeightPage(); renderDashboard();};
-      acts.append(b1,b2);
-      div.append(acts);
-      $("w_list").append(div);
-    });
-    if(!sorted.length){
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">No weigh-ins yet</div><div class="itemMeta">Add one above</div>`;
-      $("w_list").append(div);
-    }
-  }
-  $("w_cancel").addEventListener("click", ()=>{
-    w_edit=null; $("w_date").value=todayISO(); $("w_kg").value=""; $("w_notes").value=""; $("w_cancel").style.display="none"; $("w_save").textContent="Add";
-  });
-  $("w_save").addEventListener("click", ()=>{
-    const date=$("w_date").value||todayISO();
-    const kg=Number($("w_kg").value);
-    if(!Number.isFinite(kg)||kg<=0){alert("Enter a valid weight");return;}
-    const notes=$("w_notes").value.trim();
-    if(w_edit) store.weights=store.weights.map(x=>x.id===w_edit?({...x,date,weightKg:kg,notes:notes||undefined}):x);
-    else store.weights.unshift({id:uid(),date,weightKg:kg,notes:notes||undefined});
-    store.profile.weightKg=kg;
-    save();
-    $("w_cancel").click();
-    renderWeightPage(); renderDashboard();
-  });
-
-  // --- Meals page ---
-  let m_edit=null;
-  function renderMealsPage(){
-    $("mealsDateLabel").textContent = fmtDate(todayISO());
-    $("m_date").value = todayISO();
-    $("coach_meals").value = store.coach.meals || "";
-    $("mealsCoachPreview").textContent = store.coach.meals ? store.coach.meals.split("\n")[0] : "Write notes below…";
-
-    const t=todayISO();
-    const todays=store.meals.filter(m=>m.date===t);
-    const totalC=todays.reduce((s,m)=>s+(Number(m.calories)||0),0);
-    const totalP=todays.reduce((s,m)=>s+(Number(m.proteinG)||0),0);
-    $("mealsTotalBar").textContent = `Total: ${totalC} Cal / ${totalP}g Protein`;
-
-    // Saved meal presets
-    const pills = document.getElementById("mealPresetPills");
-    if(pills){
-      pills.innerHTML = "";
-      const presets = store.savedMeals || [];
-      if(!presets.length){
-        const note=document.createElement("div");
-        note.className="tbSub";
-        note.style.opacity=".8";
-        note.textContent="No saved meals yet";
-        pills.append(note);
-      } else {
-        presets.slice().reverse().forEach(p=>{
-          const b=document.createElement("div");
-          b.className="pill";
-          b.textContent=p.name;
-          b.onclick=()=>{
-            $("m_title").value=p.title||p.name;
-            $("m_cals").value=(p.calories??"");
-            $("m_prot").value=(p.proteinG??"");
-            $("m_details").value=p.details||"";
-          };
-          pills.append(b);
-        });
-      }
-    }
-
-
-    // Group by simple title keywords (Breakfast/Lunch/Dinner) else Other
-    const buckets = {Breakfast:[], Lunch:[], Dinner:[], Other:[]};
-    todays.forEach(m=>{
-      const key = (m.title||"").toLowerCase().includes("breakfast") ? "Breakfast"
-               : (m.title||"").toLowerCase().includes("lunch") ? "Lunch"
-               : (m.title||"").toLowerCase().includes("dinner") ? "Dinner"
-               : "Other";
-      buckets[key].push(m);
-    });
-
-    const container=$("mealSections");
-    container.innerHTML="";
-    Object.entries(buckets).forEach(([name,items])=>{
-      if(items.length===0) return;
-      const sec=document.createElement("div");
-      sec.style.marginBottom="12px";
-      const title=document.createElement("div");
-      title.style.fontWeight="950";
-      title.style.fontSize="18px";
-      title.style.margin="8px 0";
-      title.textContent=name;
-      sec.append(title);
-
-      items.forEach(e=>{
-        const div=document.createElement("div");
-        div.className="item";
-        const meta = `${e.calories||0} Cal / ${e.proteinG||0}g Protein`;
-        div.innerHTML = `<div class="itemTitle">${meta}</div>
-                         ${e.details?`<div class="itemBody">${e.details}</div>`:""}`;
-        const acts=document.createElement("div"); acts.className="itemActions";
-        const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-        b1.onclick=()=>{m_edit=e.id; $("m_date").value=e.date; $("m_title").value=e.title; $("m_cals").value=e.calories??""; $("m_prot").value=e.proteinG??""; $("m_details").value=e.details||""; $("m_cancel").style.display="inline-block"; $("m_save").textContent="Save";};
-        const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-        b2.onclick=()=>{store.meals=store.meals.filter(x=>x.id!==e.id); save(); renderMealsPage(); renderDashboard();};
-        acts.append(b1,b2);
-        div.append(acts);
-        sec.append(div);
-      });
-      container.append(sec);
-    });
-
+    const list = $("mealsList");
+    list.innerHTML = "";
     if(!todays.length){
-      const empty=document.createElement("div");
-      empty.className="item";
-      empty.innerHTML = `<div class="itemTitle">No meals logged today</div><div class="itemMeta">Add one below</div>`;
-      container.append(empty);
+      const it = document.createElement("div");
+      it.className="item";
+      it.innerHTML = `<div class="itemTitle">No meals logged today</div><div class="itemMeta">Add one above</div>`;
+      list.append(it);
+      return;
     }
+    todays.forEach(m=>{
+      const it = document.createElement("div");
+      it.className="item";
+      it.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="itemTitle">${m.title}</div>
+            <div class="itemMeta">${m.calories||0} Cal • ${m.proteinG||0}g protein</div>
+          </div>
+          <div class="muted">${m.date}</div>
+        </div>
+        ${m.notes ? `<div class="itemBody">${m.notes}</div>`:""}
+        <div class="itemActions">
+          <button class="btn" data-edit="${m.id}">Edit</button>
+          <button class="btn danger" data-del="${m.id}">Delete</button>
+        </div>`;
+      list.append(it);
+    });
+    list.querySelectorAll("[data-del]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-del");
+        store.meals = store.meals.filter(x=>x.id!==id);
+        save();
+        renderMeals();
+        renderDashboard();
+        toast("Deleted meal");
+      });
+    });
+    list.querySelectorAll("[data-edit]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-edit");
+        const m = store.meals.find(x=>x.id===id);
+        if(!m) return;
+        $("m_date").value = m.date;
+        $("m_title").value = m.title;
+        $("m_cals").value = m.calories ?? "";
+        $("m_pro").value = m.proteinG ?? "";
+        $("m_notes").value = m.notes ?? "";
+        // remove old, re-add on save
+        store.meals = store.meals.filter(x=>x.id!==id);
+        save();
+        toast("Editing — press Add to re-save");
+        renderMeals();
+        renderDashboard();
+      });
+    });
   }
-  $("coach_meals").addEventListener("input", ()=>{
-    store.coach.meals = $("coach_meals").value;
-    save();
-    $("mealsCoachPreview").textContent = store.coach.meals ? store.coach.meals.split("\n")[0] : "Write notes below…";
-  });
 
-  // Save current meal form as a reusable preset
-  const presetBtn = document.getElementById("saveMealPresetBtn");
-  if(presetBtn){
-    presetBtn.addEventListener("click", ()=>{
-      const title = $("m_title").value.trim();
-      const calories = $("m_cals").value.trim()===""?undefined:Number($("m_cals").value);
-      const proteinG = $("m_prot").value.trim()===""?undefined:Number($("m_prot").value);
-      const details = $("m_details").value.trim();
-      if(!title){ alert("Enter a meal title first, then Save current."); return; }
-      const name = prompt("Save meal as (name):", title) || "";
-      const clean = name.trim();
-      if(!clean){ return; }
-      store.savedMeals = store.savedMeals || [];
-      store.savedMeals = store.savedMeals.filter(p=> (p.name||"").toLowerCase() !== clean.toLowerCase());
-      store.savedMeals.push({id:uid(), name:clean, title, calories:Number.isFinite(calories)?calories:undefined, proteinG:Number.isFinite(proteinG)?proteinG:undefined, details:details||undefined});
+  // Export/Import
+  const openIO = ()=>{ $("importBox").value=""; $("ioModal").classList.add("on"); };
+  const closeIO = ()=> $("ioModal").classList.remove("on");
+  $("btnExport").addEventListener("click", openIO);
+  $("closeIO").addEventListener("click", closeIO);
+  $("btnExportJson").addEventListener("click", async ()=>{
+    const text = JSON.stringify(store, null, 2);
+    try{
+      await navigator.clipboard.writeText(text);
+      toast("Copied backup JSON");
+    }catch(e){
+      $("importBox").value = text;
+      toast("Copy not allowed — shown below");
+    }
+  });
+  $("btnImportJson").addEventListener("click", ()=>{
+    const raw = $("importBox").value.trim();
+    if(!raw) return;
+    try{
+      const s = JSON.parse(raw);
+      store = { ...defaultStore(), ...s };
       save();
-      renderMealsPage();
-      alert("Saved!");
-    });
-  }
-
-  $("m_cancel").addEventListener("click", ()=>{
-    m_edit=null; $("m_date").value=todayISO(); $("m_title").value=""; $("m_cals").value=""; $("m_prot").value=""; $("m_details").value="";
-    $("m_cancel").style.display="none"; $("m_save").textContent="Add";
-  });
-  $("m_save").addEventListener("click", ()=>{
-    const date=$("m_date").value||todayISO();
-    const title=$("m_title").value.trim();
-    if(!title){alert("Title required");return;}
-    const calories=$("m_cals").value.trim()===""?undefined:Number($("m_cals").value);
-    const proteinG=$("m_prot").value.trim()===""?undefined:Number($("m_prot").value);
-    const payload={date,title,calories:Number.isFinite(calories)?calories:undefined,proteinG:Number.isFinite(proteinG)?proteinG:undefined,details:$("m_details").value.trim()||undefined};
-    if(m_edit) store.meals=store.meals.map(x=>x.id===m_edit?({...x,...payload}):x);
-    else store.meals.unshift({id:uid(),...payload});
-    save();
-    $("m_cancel").click();
-    renderMealsPage(); renderDashboard();
-  });
-
-  // --- Progress page ---
-  let p_edit=null;
-  function renderProgressPage(){
-    $("p_date").value=todayISO();
-    $("coach_progress").value = store.coach.progress || "";
-    const list=$("p_list");
-    list.innerHTML="";
-    const sorted=[...store.progress].sort((a,b)=>a.date<b.date?1:-1);
-    sorted.forEach(e=>{
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">${e.date}${e.waistCm!=null?` • Waist ${e.waistCm}cm`:""}</div>
-                       ${e.notes?`<div class="itemBody">${e.notes}</div>`:""}`;
-      const acts=document.createElement("div"); acts.className="itemActions";
-      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-      b1.onclick=()=>{p_edit=e.id; $("p_date").value=e.date; $("p_waist").value=e.waistCm??""; $("p_photos").value=e.photos??""; $("p_notes").value=e.notes??""; $("p_cancel").style.display="inline-block"; $("p_save").textContent="Save";};
-      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-      b2.onclick=()=>{store.progress=store.progress.filter(x=>x.id!==e.id); save(); renderProgressPage();};
-      acts.append(b1,b2); div.append(acts); list.append(div);
-    });
-    if(!sorted.length){
-      const empty=document.createElement("div");
-      empty.className="item";
-      empty.innerHTML = `<div class="itemTitle">No progress entries</div><div class="itemMeta">Add one above</div>`;
-      list.append(empty);
+      toast("Imported");
+      $("ioModal").classList.remove("on");
+      setPage("dashboard");
+    }catch(e){
+      alert("Invalid JSON");
     }
-  }
-  $("coach_progress").addEventListener("input", ()=>{store.coach.progress=$("coach_progress").value; save();});
-  $("p_cancel").addEventListener("click", ()=>{
-    p_edit=null; $("p_date").value=todayISO(); $("p_waist").value=""; $("p_photos").value=""; $("p_notes").value="";
-    $("p_cancel").style.display="none"; $("p_save").textContent="Add";
-  });
-  $("p_save").addEventListener("click", ()=>{
-    const date=$("p_date").value||todayISO();
-    const waist=$("p_waist").value.trim()===""?undefined:Number($("p_waist").value);
-    const payload={date,waistCm:Number.isFinite(waist)?waist:undefined,photos:$("p_photos").value.trim()||undefined,notes:$("p_notes").value.trim()||undefined};
-    if(p_edit) store.progress=store.progress.map(x=>x.id===p_edit?({...x,...payload}):x);
-    else store.progress.unshift({id:uid(),...payload});
-    save();
-    $("p_cancel").click();
-    renderProgressPage();
   });
 
-
-  // --- Steps page ---
-  let s_edit=null;
-  function renderStepsPage(){
-    $("s_date").value=todayISO();
-    const t=todayISO();
-    const target=Number(store.targets?.steps||0);
-    const todayEntry=(store.steps||[]).find(x=>x.date===t);
-    const todaySteps=todayEntry?Number(todayEntry.steps)||0:0;
-    $("stepsTotalBar").textContent = target ? `Today: ${todaySteps} / ${target} steps` : `Today: ${todaySteps} steps (set target in Settings)`;
-
-    const list=$("s_list");
-    list.innerHTML="";
-    const sorted=[...(store.steps||[])].sort((a,b)=>a.date<b.date?1:-1);
-    sorted.forEach(e=>{
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">${e.steps} steps</div><div class="itemMeta">${e.date}</div>`;
-      const acts=document.createElement("div"); acts.className="itemActions";
-      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-      b1.onclick=()=>{s_edit=e.id; $("s_date").value=e.date; $("s_steps").value=e.steps; $("s_cancel").style.display="inline-block"; $("s_save").textContent="Save";};
-      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-      b2.onclick=()=>{store.steps=store.steps.filter(x=>x.id!==e.id); save(); renderStepsPage(); renderDashboard();};
-      acts.append(b1,b2); div.append(acts); list.append(div);
+  // --- Weight ---
+  function renderWeight(){
+    $("w_date").value = $("w_date").value || todayISO();
+    const list = $("weightList");
+    list.innerHTML = "";
+    const sorted = store.weights.slice().sort((a,b)=>a.date<b.date?1:-1);
+    sorted.slice(0,20).forEach(w=>{
+      const it = document.createElement("div");
+      it.className="item";
+      it.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="itemTitle">${Number(w.kg).toFixed(1)} kg</div>
+            <div class="itemMeta">${w.date}</div>
+          </div>
+          <button class="btn danger" data-del="${w.id}">Delete</button>
+        </div>
+        ${w.notes?`<div class="itemBody">${w.notes}</div>`:""}`;
+      list.append(it);
     });
-    if(!sorted.length){
-      const empty=document.createElement("div");
-      empty.className="item";
-      empty.innerHTML = `<div class="itemTitle">No steps logged yet</div><div class="itemMeta">Add your steps above</div>`;
-      list.append(empty);
-    }
+    list.querySelectorAll("[data-del]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-del");
+        store.weights = store.weights.filter(x=>x.id!==id);
+        save();
+        renderWeight();
+        renderDashboard();
+        toast("Deleted weigh-in");
+      });
+    });
   }
-  $("s_cancel").addEventListener("click", ()=>{
-    s_edit=null; $("s_date").value=todayISO(); $("s_steps").value=""; $("s_cancel").style.display="none"; $("s_save").textContent="Add";
-  });
-  $("s_save").addEventListener("click", ()=>{
-    const date=$("s_date").value||todayISO();
-    const steps=Number($("s_steps").value);
-    if(!Number.isFinite(steps) || steps<0){alert("Enter a valid step count");return;}
-    const payload={date,steps:Math.round(steps)};
-    if(s_edit) store.steps=store.steps.map(x=>x.id===s_edit?({...x,...payload}):x);
-    else store.steps.unshift({id:uid(),...payload});
+  $("btnSaveWeight").addEventListener("click", ()=>{
+    const date = $("w_date").value || todayISO();
+    const kg = Number($("w_kg").value);
+    if(!Number.isFinite(kg) || kg<=0) return alert("Enter a valid weight.");
+    store.weights.unshift({ id: uid(), date, kg: Number(kg.toFixed(1)), notes: $("w_notes").value.trim()||"" });
     save();
-    $("s_cancel").click();
-    renderStepsPage();
-  renderCardioPage(); renderDashboard();
+    toast("Added weigh-in");
+    renderWeight();
+    renderDashboard();
+    $("w_kg").value=""; $("w_notes").value="";
   });
+  $("btnClearWeight").addEventListener("click", ()=>{ $("w_kg").value=""; $("w_notes").value=""; });
 
+  // --- Steps ---
+  function renderSteps(){
+    $("s_date").value = $("s_date").value || todayISO();
+    const list = $("stepsList");
+    list.innerHTML="";
+    const sorted = store.steps.slice().sort((a,b)=>a.date<b.date?1:-1);
+    sorted.slice(0,30).forEach(s=>{
+      const it = document.createElement("div");
+      it.className="item";
+      it.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="itemTitle">${s.steps} steps</div>
+            <div class="itemMeta">${s.date}</div>
+          </div>
+          <div class="itemActions">
+            <button class="btn" data-edit="${s.id}">Edit</button>
+            <button class="btn danger" data-del="${s.id}">Delete</button>
+          </div>
+        </div>`;
+      list.append(it);
+    });
+    list.querySelectorAll("[data-del]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-del");
+        store.steps = store.steps.filter(x=>x.id!==id);
+        save();
+        renderSteps();
+        renderDashboard();
+        toast("Deleted steps");
+      });
+    });
+    list.querySelectorAll("[data-edit]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-edit");
+        const s = store.steps.find(x=>x.id===id);
+        if(!s) return;
+        $("s_date").value = s.date;
+        $("s_steps").value = s.steps;
+        store.steps = store.steps.filter(x=>x.id!==id);
+        save();
+        toast("Editing — press Add to re-save");
+        renderSteps();
+      });
+    });
+  }
+  $("btnSaveSteps").addEventListener("click", ()=>{
+    const date = $("s_date").value || todayISO();
+    const steps = Number($("s_steps").value);
+    if(!Number.isFinite(steps) || steps<0) return alert("Enter valid steps.");
+    store.steps.unshift({ id: uid(), date, steps: Math.round(steps) });
+    save();
+    toast("Saved steps");
+    renderSteps();
+    renderDashboard();
+    $("s_steps").value="";
+  });
+  $("btnClearSteps").addEventListener("click", ()=>{ $("s_steps").value=""; });
 
-  // --- Cardio page ---
-  let c_edit=null;
-  function parseTimeToSec(s){
-    const t=String(s||"").trim();
-    if(!t) return null;
-    const parts=t.split(":").map(x=>x.trim());
+  // --- Cardio ---
+  const parseTime = (t) => {
+    const s = String(t||"").trim();
+    if(!s) return null;
+    const parts = s.split(":");
     if(parts.length===1){
-      const m=Number(parts[0]); return Number.isFinite(m)?Math.round(m*60):null;
+      const m = Number(parts[0]); return Number.isFinite(m)?Math.round(m*60):null;
     }
     if(parts.length===2){
-      const m=Number(parts[0]), sec=Number(parts[1]);
+      const m = Number(parts[0]), sec = Number(parts[1]);
       if(!Number.isFinite(m)||!Number.isFinite(sec)) return null;
       return Math.round(m*60+sec);
     }
     return null;
-  }
-  function fmtPace(secPerKm){
+  };
+  const paceStr = (secPerKm) => {
     if(!Number.isFinite(secPerKm) || secPerKm<=0) return "—";
-    const m=Math.floor(secPerKm/60);
-    const s=Math.round(secPerKm%60);
+    const m = Math.floor(secPerKm/60);
+    const s = Math.round(secPerKm%60);
     return `${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}/km`;
-  }
-  function renderCardioPage(){
-    $("c_date").value=todayISO();
-    const ref=todayISO();
-    const month = (store.cardio||[]).filter(c=>c.date && isSameMonth(c.date, ref));
-    const km = month.reduce((s,x)=>s+(Number(x.km)||0),0);
-    $("c_totalBar").textContent = month.length ? `This month: ${month.length} sessions • ${km.toFixed(1)} km` : "This month: 0 sessions";
-
-    const list=$("c_list");
+  };
+  function renderCardio(){
+    $("c_date").value = $("c_date").value || todayISO();
+    const list = $("cardioList");
     list.innerHTML="";
-    const sorted=[...(store.cardio||[])].sort((a,b)=>a.date<b.date?1:-1);
-    sorted.forEach(e=>{
-      const km=Number(e.km)||0;
-      const sec=Number(e.sec)||0;
-      const pace = (km>0 && sec>0) ? fmtPace(sec/km) : "—";
-      const timeStr = e.timeStr || (sec?`${Math.floor(sec/60)}:${String(sec%60).padStart(2,"0")}`:"—");
-      const div=document.createElement("div");
-      div.className="item";
-      div.innerHTML = `<div class="itemTitle">${e.type || "Cardio"} • ${km?km.toFixed(2):"—"} km</div>
-                       <div class="itemMeta">${e.date} • ${timeStr} • Pace ${pace}</div>
-                       ${e.notes?`<div class="itemBody">${e.notes}</div>`:""}`;
-      const acts=document.createElement("div"); acts.className="itemActions";
-      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
-      b1.onclick=()=>{c_edit=e.id; $("c_date").value=e.date; $("c_type").value=e.type||"Run"; $("c_km").value=e.km??""; $("c_time").value=e.timeStr??""; $("c_notes").value=e.notes||""; $("c_cancel").style.display="inline-block"; $("c_save").textContent="Save";};
-      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
-      b2.onclick=()=>{store.cardio=store.cardio.filter(x=>x.id!==e.id); save(); renderCardioPage(); renderDashboard();};
-      acts.append(b1,b2); div.append(acts); list.append(div);
+    const sorted = store.cardio.slice().sort((a,b)=>a.date<b.date?1:-1);
+    sorted.slice(0,30).forEach(c=>{
+      const km = Number(c.km)||0;
+      const sec = Number(c.sec)||0;
+      const pace = (km>0 && sec>0) ? paceStr(sec/km) : "—";
+      const it = document.createElement("div");
+      it.className="item";
+      it.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="itemTitle">${c.type} • ${km.toFixed(2)} km</div>
+            <div class="itemMeta">${c.date} • ${c.time||"—"} • Pace ${pace}</div>
+          </div>
+          <div class="itemActions">
+            <button class="btn" data-edit="${c.id}">Edit</button>
+            <button class="btn danger" data-del="${c.id}">Delete</button>
+          </div>
+        </div>
+        ${c.notes?`<div class="itemBody">${c.notes}</div>`:""}
+      `;
+      list.append(it);
     });
-    if(!sorted.length){
-      const empty=document.createElement("div");
-      empty.className="item";
-      empty.innerHTML = `<div class="itemTitle">No cardio yet</div><div class="itemMeta">Add a run/session above</div>`;
-      list.append(empty);
-    }
-  }
-  $("c_cancel").addEventListener("click", ()=>{
-    c_edit=null; $("c_date").value=todayISO(); $("c_type").value="Run"; $("c_km").value=""; $("c_time").value=""; $("c_notes").value="";
-    $("c_cancel").style.display="none"; $("c_save").textContent="Add";
-  });
-  $("c_save").addEventListener("click", ()=>{
-    const date=$("c_date").value||todayISO();
-    const type=$("c_type").value||"Run";
-    const km = $("c_km").value.trim()===""?undefined:Number($("c_km").value);
-    if(km!=null && (!Number.isFinite(km) || km<=0)){alert("Enter a valid distance");return;}
-    const timeStr=$("c_time").value.trim();
-    const sec=parseTimeToSec(timeStr);
-    if(timeStr && sec==null){alert("Time should be like 25:30");return;}
-    const notes=$("c_notes").value.trim();
-    const payload={date,type,km:Number.isFinite(km)?km:undefined,timeStr:timeStr||undefined,sec:Number.isFinite(sec)?sec:undefined,notes:notes||undefined};
-    if(c_edit) store.cardio=store.cardio.map(x=>x.id===c_edit?({...x,...payload}):x);
-    else store.cardio.unshift({id:uid(),...payload});
-    save();
-    $("c_cancel").click();
-    renderCardioPage(); renderDashboard();
-  });
-
-  // --- Workouts page ---
-  const dayGrid=$("dayGrid");
-  const workoutDaysView=$("workoutDaysView");
-  const workoutSessionView=$("workoutSessionView");
-
-  let activeDayId=null;
-  let activeExName=null;
-  let currentSession=null;
-  let prevSession=null;
-
-  function weekdayToday(){return new Date().getDay();}
-  function isScheduledToday(day){return (day.scheduled||[]).includes(weekdayToday());}
-  function findDay(id){return (store.workoutDays||[]).find(d=>d.id===id)||null;}
-  function lastWorkoutForTemplate(templateId){return [...store.workouts].filter(w=>w.templateId===templateId).sort((a,b)=>a.date<b.date?1:-1)[0]||null;}
-  function blankSessionFromDay(day){return {templateId:day.id,date:todayISO(),notes:"",exercises:(day.exercises||[]).map(ex=>({name:ex.name,sets:Array.from({length:ex.defaultSets||3},()=>({reps:"",kg:""}))}))};}
-  function normalizePrevWorkout(day,w){
-    if(!w) return null;
-    const map=new Map((w.exercises||[]).map(ex=>[ex.name,ex]));
-    return {date:w.date, exercises:(day.exercises||[]).map(ex=>{
-      const prev=map.get(ex.name);
-      return {name:ex.name, sets:(prev?.sets||[]).map(s=>({reps:s.reps??"",kg:s.kg??""}))};
-    })};
-  }
-  function showWorkoutDaysView(){
-    workoutDaysView.classList.remove("hidden");
-    workoutSessionView.classList.add("hidden");
-    $("manageDaysSheet").classList.add("hidden");
-    $("workoutDayLabel").textContent = fmtDate(todayISO());
-  }
-  function showWorkoutSessionView(){
-    workoutDaysView.classList.add("hidden");
-    workoutSessionView.classList.remove("hidden");
-  }
-
-  function renderWorkoutDays(){
-    dayGrid.innerHTML="";
-    const days=store.workoutDays||[];
-    days.forEach(day=>{
-      const tile=document.createElement("div");
-      tile.className="stat workouts";
-      tile.style.minHeight="92px";
-      tile.style.padding="14px";
-      tile.style.cursor="pointer";
-      tile.innerHTML = `<div class="statRow"><div><div class="statName">${day.name}</div><div class="statSub">${day.exercises?.length||0} exercises</div></div></div>`;
-      if(isScheduledToday(day)){
-        tile.style.outline="3px solid rgba(34,197,94,.55)";
-        tile.style.outlineOffset="2px";
-      }
-      tile.addEventListener("click", ()=> openWorkoutDay(day.id));
-      dayGrid.append(tile);
+    list.querySelectorAll("[data-del]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-del");
+        store.cardio = store.cardio.filter(x=>x.id!==id);
+        save();
+        renderCardio();
+        renderDashboard();
+        toast("Deleted cardio");
+      });
     });
-  }
-
-  function getCurrentExerciseObj(name){return (currentSession.exercises||[]).find(ex=>ex.name===name)||null;}
-  function getPrevExerciseObj(name){return (prevSession?.exercises||[]).find(ex=>ex.name===name)||null;}
-
-  function updateTabs(day){
-    const tabs=$("exTabs");
-    tabs.innerHTML="";
-    (day.exercises||[]).forEach(ex=>{
-      const b=document.createElement("div");
-      b.className="pill"+(ex.name===activeExName?" active":"");
-      b.textContent=ex.name;
-      b.onclick=()=>{activeExName=ex.name; updateTabs(day); renderSetTable(); $("exTitle").textContent=activeExName;};
-      tabs.append(b);
-    });
-  }
-
-  function renderSetTable(){
-    const tbody=$("setTbody");
-    tbody.innerHTML="";
-    const cur=getCurrentExerciseObj(activeExName);
-    if(!cur) return;
-    const prev=getPrevExerciseObj(activeExName);
-    const prevSets=prev?.sets||[];
-    const rows=Math.max(cur.sets.length, prevSets.length, 1);
-    while(cur.sets.length<rows) cur.sets.push({reps:"",kg:""});
-    for(let i=0;i<rows;i++){
-      const tr=document.createElement("tr");
-      const lastR=prevSets[i]?.reps??"";
-      const lastK=prevSets[i]?.kg??"";
-      tr.innerHTML = `<td>${i+1}</td>
-        <td>${lastR}</td><td>${lastK}</td>
-        <td><input data-i="${i}" data-f="reps" value="${cur.sets[i].reps??""}" style="width:56px;padding:8px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:white;text-align:center"></td>
-        <td><input data-i="${i}" data-f="kg" value="${cur.sets[i].kg??""}" style="width:64px;padding:8px;border-radius:12px;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.06);color:white;text-align:center"></td>`;
-      tbody.append(tr);
-    }
-    tbody.querySelectorAll("input").forEach(inp=>{
-      inp.addEventListener("input", ()=>{
-        const i=Number(inp.getAttribute("data-i"));
-        const f=inp.getAttribute("data-f");
-        const cur=getCurrentExerciseObj(activeExName);
-        if(!cur) return;
-        cur.sets[i][f]=inp.value;
+    list.querySelectorAll("[data-edit]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-edit");
+        const c = store.cardio.find(x=>x.id===id);
+        if(!c) return;
+        $("c_date").value = c.date;
+        $("c_type").value = c.type;
+        $("c_km").value = c.km;
+        $("c_time").value = c.time;
+        $("c_notes").value = c.notes || "";
+        store.cardio = store.cardio.filter(x=>x.id!==id);
+        save();
+        toast("Editing — press Add to re-save");
+        renderCardio();
       });
     });
   }
-
-  function openWorkoutDay(dayId){
-    const day=findDay(dayId);
-    if(!day) return;
-    activeDayId=dayId;
-    $("workoutDayLabel").textContent = fmtDate(todayISO());
-    $("wo_date").value=todayISO();
-    $("wo_notes").value="";
-    $("wo_coach").value = store.coach.workouts || "";
-
-    const prev=lastWorkoutForTemplate(dayId);
-    prevSession = prev ? normalizePrevWorkout(day, prev) : null;
-    $("wo_prev_label").textContent = prev ? `Last: ${prev.date}` : "No previous session";
-
-    currentSession = blankSessionFromDay(day);
-    activeExName = day.exercises?.[0]?.name || null;
-    updateTabs(day);
-    $("exTitle").textContent = activeExName || "Exercise";
-    renderSetTable();
-    showWorkoutSessionView();
-  }
-
-  $("addSetBtn").addEventListener("click", ()=>{
-    const cur=getCurrentExerciseObj(activeExName);
-    if(!cur) return;
-    cur.sets.push({reps:"",kg:""});
-    renderSetTable();
-  });
-
-  $("wo_back_days").addEventListener("click", ()=>{
-    store.coach.workouts = $("wo_coach").value;
+  $("btnSaveCardio").addEventListener("click", ()=>{
+    const date = $("c_date").value || todayISO();
+    const type = $("c_type").value || "Run";
+    const km = Number($("c_km").value);
+    const time = $("c_time").value.trim();
+    if(!Number.isFinite(km) || km<=0) return alert("Enter a valid distance (km).");
+    const sec = parseTime(time);
+    if(time && sec==null) return alert("Time should be like 25:30");
+    store.cardio.unshift({ id: uid(), date, type, km: Number(km.toFixed(2)), time, sec: sec||0, notes: $("c_notes").value.trim()||"" });
     save();
-    showWorkoutDaysView();
-    renderWorkoutDays();
-  });
-
-  $("wo_load_prev").addEventListener("click", ()=>{
-    const day=findDay(activeDayId);
-    if(!day) return;
-    const prev=lastWorkoutForTemplate(activeDayId);
-    if(!prev){alert("No previous workout");return;}
-    prevSession = normalizePrevWorkout(day, prev);
-    currentSession = {
-      templateId: day.id,
-      date: todayISO(),
-      notes:"",
-      exercises: prevSession.exercises.map(ex=>({name:ex.name, sets: (ex.sets||[]).map(s=>({reps:s.reps,kg:s.kg}))}))
-    };
-    updateTabs(day);
-    renderSetTable();
-  });
-
-  $("wo_save").addEventListener("click", ()=>{
-    const day=findDay(activeDayId);
-    if(!day) return;
-    currentSession.date = $("wo_date").value || todayISO();
-    const payload = {
-      id: uid(),
-      date: currentSession.date,
-      templateId: day.id,
-      title: day.name,
-      sessionNotes: $("wo_notes").value.trim() || undefined,
-      coachNotes: $("wo_coach").value.trim() || undefined,
-      exercises: currentSession.exercises.map(ex=>({
-        name: ex.name,
-        sets: (ex.sets||[]).map(s=>({reps:s.reps, kg:s.kg})).filter(s=>String(s.reps).trim()!==""||String(s.kg).trim()!=="")
-      }))
-    };
-    store.workouts.unshift(payload);
-    store.coach.workouts = $("wo_coach").value;
-    save();
-    alert("Saved workout!");
+    toast("Saved cardio");
+    renderCardio();
     renderDashboard();
+    $("c_km").value=""; $("c_time").value=""; $("c_notes").value="";
   });
+  $("btnClearCardio").addEventListener("click", ()=>{ $("c_km").value=""; $("c_time").value=""; $("c_notes").value=""; });
 
-  // Timer
-  let restLeft=180;
-  let timer=null;
-  const fmt=(sec)=>String(Math.floor(sec/60)).padStart(2,"0")+":"+String(sec%60).padStart(2,"0");
-  function beep2s(){
-    try{
-      const ctx=new (window.AudioContext||window.webkitAudioContext)();
-      const osc=ctx.createOscillator();
-      const gain=ctx.createGain();
-      osc.type="sine"; osc.frequency.value=880;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime+0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+2.0);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(); osc.stop(ctx.currentTime+2.05);
-      osc.onended=()=>ctx.close().catch(()=>{});
-    }catch(e){}
-  }
-  function renderTimer(){ $("timerVal").textContent = fmt(restLeft); }
-  renderTimer();
-  $("timerBtn").addEventListener("click", ()=>{
-    if(timer){ clearInterval(timer); timer=null; restLeft=180; renderTimer(); $("timerBtn").textContent="Start Timer"; return; }
-    $("timerBtn").textContent="Reset";
-    timer=setInterval(()=>{
-      restLeft=Math.max(0, restLeft-1);
-      renderTimer();
-      if(restLeft<=0){
-        clearInterval(timer); timer=null;
-        $("timerBtn").textContent="Start Timer";
-        restLeft=180; renderTimer();
-        beep2s();
-      }
-    }, 1000);
-  });
-
-  // Manage days
-  function refreshDaySelect(){
-    const sel=$("day_select");
-    sel.innerHTML="";
-    (store.workoutDays||[]).forEach(d=>{
-      const o=document.createElement("option");
-      o.value=d.id; o.textContent=d.name;
-      sel.append(o);
+  // --- Progress ---
+  function renderProgress(){
+    $("p_date").value = $("p_date").value || todayISO();
+    const list = $("progList");
+    list.innerHTML="";
+    const sorted = store.progress.slice().sort((a,b)=>a.date<b.date?1:-1);
+    sorted.slice(0,30).forEach(p=>{
+      const it = document.createElement("div");
+      it.className="item";
+      it.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="itemTitle">${p.date}</div>
+            <div class="itemMeta">${p.waist?`Waist ${p.waist} cm • `:""}Entry</div>
+          </div>
+          <div class="itemActions">
+            <button class="btn" data-edit="${p.id}">Edit</button>
+            <button class="btn danger" data-del="${p.id}">Delete</button>
+          </div>
+        </div>
+        ${p.notes?`<div class="itemBody">${p.notes}</div>`:""}
+      `;
+      list.append(it);
+    });
+    list.querySelectorAll("[data-del]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-del");
+        store.progress = store.progress.filter(x=>x.id!==id);
+        save();
+        renderProgress();
+        renderDashboard();
+        toast("Deleted entry");
+      });
+    });
+    list.querySelectorAll("[data-edit]").forEach(b=>{
+      b.addEventListener("click", ()=>{
+        const id = b.getAttribute("data-edit");
+        const p = store.progress.find(x=>x.id===id);
+        if(!p) return;
+        $("p_date").value = p.date;
+        $("p_waist").value = p.waist ?? "";
+        $("p_notes").value = p.notes ?? "";
+        store.progress = store.progress.filter(x=>x.id!==id);
+        save();
+        toast("Editing — press Add to re-save");
+        renderProgress();
+      });
     });
   }
-  function getSelectedDay(){ return (store.workoutDays||[]).find(d=>d.id===$("day_select").value) || null; }
-  const WEEK=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
-  let editingDayId=null;
-  let editingScheduled=new Set();
-
-  function renderWeekdayChecks(){
-    const wrap=$("weekdayChecks");
-    wrap.innerHTML="";
-    WEEK.forEach((lab,i)=>{
-      const b=document.createElement("button");
-      b.className="btnSm";
-      b.textContent=lab;
-      b.style.background = editingScheduled.has(i) ? "rgba(34,197,94,.22)" : "rgba(255,255,255,.06)";
-      b.style.borderColor = editingScheduled.has(i) ? "rgba(34,197,94,.35)" : "rgba(255,255,255,.14)";
-      b.onclick=()=>{
-        editingScheduled.has(i) ? editingScheduled.delete(i) : editingScheduled.add(i);
-        renderWeekdayChecks();
-      };
-      wrap.append(b);
-    });
-  }
-
-  function openManage(){
-    refreshDaySelect();
-    $("manageDaysSheet").classList.remove("hidden");
-  }
-  $("manageDaysBtn").addEventListener("click", openManage);
-
-  // Quick edit for exercises while in a session
-  const editDayBtn = document.getElementById("wo_edit_day");
-  if(editDayBtn){
-    editDayBtn.addEventListener("click", ()=>{
-      openManage();
-      // Try to preselect the active day in the dropdown
-      try{
-        if(activeDayId) document.getElementById("day_select").value = activeDayId;
-      }catch(e){}
-    });
-  }
-
-  $("closeManage").addEventListener("click", ()=> $("manageDaysSheet").classList.add("hidden"));
-
-  function showEditor(mode){
-    const ed=$("day_editor");
-    ed.classList.remove("hidden");
-    if(mode==="new"){
-      editingDayId=null;
-      $("day_name").value="";
-      $("day_notes").value="";
-      $("day_exercises").value="Bench Press x3\nOverhead Press x3\nTricep Extensions x3";
-      editingScheduled=new Set();
-    }else{
-      const d=getSelectedDay();
-      if(!d) return;
-      editingDayId=d.id;
-      $("day_name").value=d.name;
-      $("day_notes").value=d.notes||"";
-      $("day_exercises").value=(d.exercises||[]).map(ex=>`${ex.name} x${ex.defaultSets||3}`).join("\n");
-      editingScheduled=new Set(d.scheduled||[]);
-    }
-    renderWeekdayChecks();
-  }
-  function hideEditor(){ $("day_editor").classList.add("hidden"); editingDayId=null; editingScheduled=new Set(); }
-
-  $("day_new").addEventListener("click", ()=>showEditor("new"));
-  $("day_edit").addEventListener("click", ()=>showEditor("edit"));
-  $("day_cancel").addEventListener("click", hideEditor);
-
-  $("day_save").addEventListener("click", ()=>{
-    const name=$("day_name").value.trim();
-    if(!name){alert("Name required");return;}
-    const notes=$("day_notes").value.trim();
-    const parsed=$("day_exercises").value.split("\n").map(s=>s.trim()).filter(Boolean).map(line=>{
-      const m=line.match(/^(.*?)(?:\s*[xX]\s*(\d+))?\s*$/);
-      const n=(m?.[1]||line).trim();
-      const sets=m?.[2]?Math.max(1,Number(m[2])):3;
-      return {name:n, defaultSets:sets};
-    });
-    const scheduled=Array.from(editingScheduled).sort((a,b)=>a-b);
-    if(editingDayId){
-      store.workoutDays=store.workoutDays.map(d=>d.id===editingDayId?({...d,name,notes,scheduled,exercises:parsed}):d);
-    }else{
-      store.workoutDays.push({id:uid(),name,notes,scheduled,exercises:parsed});
-    }
+  $("btnSaveProg").addEventListener("click", ()=>{
+    const date = $("p_date").value || todayISO();
+    const waistVal = $("p_waist").value.trim()==="" ? undefined : Number($("p_waist").value);
+    const notes = $("p_notes").value.trim();
+    if(!notes && !Number.isFinite(waistVal)) return alert("Add notes and/or waist.");
+    store.progress.unshift({ id: uid(), date, waist: Number.isFinite(waistVal)?Number(waistVal.toFixed(1)):undefined, notes });
     save();
-    hideEditor();
-    refreshDaySelect();
-    renderWorkoutDays();
-    alert("Saved day");
+    toast("Saved progress");
+    renderProgress();
+    renderDashboard();
+    $("p_waist").value=""; $("p_notes").value="";
+  });
+  $("btnClearProg").addEventListener("click", ()=>{ $("p_waist").value=""; $("p_notes").value=""; });
+
+  // Close modals on background tap
+  ["settingsModal","daysModal","ioModal"].forEach(mid=>{
+    const m = $(mid);
+    m.addEventListener("click", (e)=>{
+      if(e.target===m) m.classList.remove("on");
+    });
   });
 
-  $("day_delete").addEventListener("click", ()=>{
-    const d=getSelectedDay(); if(!d) return;
-    if(confirm(`Delete "${d.name}"?`)){
-      store.workoutDays=store.workoutDays.filter(x=>x.id!==d.id);
-      save();
-      refreshDaySelect();
-      renderWorkoutDays();
-      hideEditor();
-    }
+  // Init defaults for date fields
+  ["m_date","w_date","s_date","c_date","p_date"].forEach(id=>{
+    const el = $(id);
+    if(el) el.value = todayISO();
   });
-
-  // Dashboard tiles nav
-  document.querySelectorAll(".stat[data-nav]").forEach(el=>{
-    el.addEventListener("click", ()=> setPage(el.getAttribute("data-nav")));
-  });
-
-  // Init defaults
+  // Load coach notes
+  renderCoach();
+  // First render
   renderDashboard();
-  renderMealsPage();
-  renderWeightPage();
-  renderProgressPage();
-  renderStepsPage();
-})();
-</script>
 
-<script>
-if('serviceWorker' in navigator){
-  window.addEventListener('load', ()=> navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-}
+  // Service worker
+  if("serviceWorker" in navigator){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("./sw.js").catch(()=>{});
+    });
+  }
+})();
 </script>
 </body>
 </html>
