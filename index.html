@@ -679,7 +679,7 @@ textarea{min-height:110px;resize:vertical}
 
 <script>
 (() => {
-  const APP_KEY="fitness_log_vibrant_v2_4";
+  const APP_KEY="fitness_log_vibrant_v2_4b";
   const todayISO=()=>new Date().toISOString().slice(0,10);
   const uid=()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
   const $=(id)=>document.getElementById(id);
@@ -820,7 +820,6 @@ textarea{min-height:110px;resize:vertical}
     const t = todayISO();
     const todays = store.meals.filter(m=>m.date===t);
     const cals = todays.reduce((s,m)=>s+(Number(m.calories)||0),0);
-    const tP=Number(store.targets?.proteinG||0);
     $("dashMeals").textContent = (tC>0) ? String(Math.max(0, tC - cals)).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : String(cals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
     // Workouts tile
