@@ -293,7 +293,7 @@ textarea{min-height:110px;resize:vertical}
             <div class="statRow">
               <div>
                 <div class="statName">Meals</div>
-                <div class="statVal" id="dashMeals">— <span class="statUnit">Cal</span></div>
+                <div class="statVal" id="dashMeals">— <span class="statUnit">Left</span></div>
               </div>
             </div>
           </div>
@@ -472,6 +472,16 @@ textarea{min-height:110px;resize:vertical}
 
       <div class="card sectionPad">
         <div id="mealSections"></div>
+
+        <div class="card" style="margin-top:12px;padding:12px;border-radius:22px;background:rgba(255,255,255,.04)">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+            <div style="font-weight:950">Saved Meals</div>
+            <button class="btnSm" id="saveMealPresetBtn">+ Save current</button>
+          </div>
+          <div class="tbSub" style="margin-top:6px">Tap a saved meal to auto-fill the form.</div>
+          <div class="pills" id="mealPresetPills" style="padding-left:0;padding-right:0;margin-top:8px"></div>
+        </div>
+
 
         <div class="totalBar" id="mealsTotalBar">Total: —</div>
 
@@ -669,7 +679,7 @@ textarea{min-height:110px;resize:vertical}
 
 <script>
 (() => {
-  const APP_KEY="fitness_log_vibrant_v2_3";
+  const APP_KEY="fitness_log_vibrant_v2_4";
   const todayISO=()=>new Date().toISOString().slice(0,10);
   const uid=()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
   const $=(id)=>document.getElementById(id);
@@ -680,7 +690,7 @@ textarea{min-height:110px;resize:vertical}
   const defaultStore=()=>({
     profile:{age:30,sex:"male",heightCm:178,weightKg:84.5,gymDays:4,goal:"75kg with visible six-pack, then lean gain"},
     targets:{calories:2200,proteinG:170,steps:8000},
-    weights:[], meals:[], progress:[], steps:[], cardio:[],
+    weights:[], meals:[], savedMeals:[], progress:[], steps:[], cardio:[],
     coach:{meals:"",workouts:"",progress:""},
     workoutDays:[
       {id:"push",name:"Push",notes:"",scheduled:[1,4],exercises:[{name:"Bench Press",defaultSets:3},{name:"Overhead Press",defaultSets:3},{name:"Tricep Extensions",defaultSets:3}]},
@@ -810,7 +820,8 @@ textarea{min-height:110px;resize:vertical}
     const t = todayISO();
     const todays = store.meals.filter(m=>m.date===t);
     const cals = todays.reduce((s,m)=>s+(Number(m.calories)||0),0);
-    $("dashMeals").textContent = cals ? String(cals).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : "0";
+    const tP=Number(store.targets?.proteinG||0);
+    $("dashMeals").textContent = (tC>0) ? String(Math.max(0, tC - cals)).replace(/\B(?=(\d{3})+(?!\d))/g, ",") : String(cals).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
     // Workouts tile
     $("dashWorkouts").textContent = String(workoutsThisWeek());
@@ -960,6 +971,34 @@ textarea{min-height:110px;resize:vertical}
     const totalP=todays.reduce((s,m)=>s+(Number(m.proteinG)||0),0);
     $("mealsTotalBar").textContent = `Total: ${totalC} Cal / ${totalP}g Protein`;
 
+    // Saved meal presets
+    const pills = document.getElementById("mealPresetPills");
+    if(pills){
+      pills.innerHTML = "";
+      const presets = store.savedMeals || [];
+      if(!presets.length){
+        const note=document.createElement("div");
+        note.className="tbSub";
+        note.style.opacity=".8";
+        note.textContent="No saved meals yet";
+        pills.append(note);
+      } else {
+        presets.slice().reverse().forEach(p=>{
+          const b=document.createElement("div");
+          b.className="pill";
+          b.textContent=p.name;
+          b.onclick=()=>{
+            $("m_title").value=p.title||p.name;
+            $("m_cals").value=(p.calories??"");
+            $("m_prot").value=(p.proteinG??"");
+            $("m_details").value=p.details||"";
+          };
+          pills.append(b);
+        });
+      }
+    }
+
+
     // Group by simple title keywords (Breakfast/Lunch/Dinner) else Other
     const buckets = {Breakfast:[], Lunch:[], Dinner:[], Other:[]};
     todays.forEach(m=>{
@@ -1013,6 +1052,28 @@ textarea{min-height:110px;resize:vertical}
     save();
     $("mealsCoachPreview").textContent = store.coach.meals ? store.coach.meals.split("\n")[0] : "Write notes below…";
   });
+
+  // Save current meal form as a reusable preset
+  const presetBtn = document.getElementById("saveMealPresetBtn");
+  if(presetBtn){
+    presetBtn.addEventListener("click", ()=>{
+      const title = $("m_title").value.trim();
+      const calories = $("m_cals").value.trim()===""?undefined:Number($("m_cals").value);
+      const proteinG = $("m_prot").value.trim()===""?undefined:Number($("m_prot").value);
+      const details = $("m_details").value.trim();
+      if(!title){ alert("Enter a meal title first, then Save current."); return; }
+      const name = prompt("Save meal as (name):", title) || "";
+      const clean = name.trim();
+      if(!clean){ return; }
+      store.savedMeals = store.savedMeals || [];
+      store.savedMeals = store.savedMeals.filter(p=> (p.name||"").toLowerCase() !== clean.toLowerCase());
+      store.savedMeals.push({id:uid(), name:clean, title, calories:Number.isFinite(calories)?calories:undefined, proteinG:Number.isFinite(proteinG)?proteinG:undefined, details:details||undefined});
+      save();
+      renderMealsPage();
+      alert("Saved!");
+    });
+  }
+
   $("m_cancel").addEventListener("click", ()=>{
     m_edit=null; $("m_date").value=todayISO(); $("m_title").value=""; $("m_cals").value=""; $("m_prot").value=""; $("m_details").value="";
     $("m_cancel").style.display="none"; $("m_save").textContent="Add";
