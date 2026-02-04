@@ -92,6 +92,7 @@ body{
 .stat.meals::after{background:var(--gradOrange)}
 .stat.workouts::after{background:var(--gradGreen)}
 .stat.progress::after{background:var(--gradRed)}
+.stat.steps::after{background:linear-gradient(135deg,#f7971e 0%, #ffd200 100%)}
 .statRow{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;position:relative;z-index:2}
 .statName{font-weight:950;font-size:22px;letter-spacing:-.02em}
 .statVal{font-weight:950;font-size:30px;letter-spacing:-.02em}
@@ -310,6 +311,15 @@ textarea{min-height:110px;resize:vertical}
                 <div class="statSub" id="dashProgressSub">Waist / notes</div>
               </div>
             </div>
+          </div>
+          <div class="stat steps" data-nav="steps">
+            <div class="statRow">
+              <div>
+                <div class="statName">Steps</div>
+                <div class="statVal"><span id="dashSteps">0</span> <span class="statUnit">Today</span></div>
+              </div>
+            </div>
+            <div class="statSub" id="dashStepsSub">Target: —</div>
           </div>
         </div>
 
@@ -543,7 +553,39 @@ textarea{min-height:110px;resize:vertical}
       </div>
     </div>
 
-    <!-- SETTINGS (simple modal) -->
+    
+    <!-- STEPS -->
+    <div id="page-steps" class="page">
+      <div class="toolbar">
+        <div class="tbLeft"><div class="iconBtn" data-back="dashboard">‹</div></div>
+        <div style="text-align:center;flex:1">
+          <div class="tbTitle">Steps</div>
+          <div class="tbSub">Manual daily log</div>
+        </div>
+        <div class="iconBtn">👟</div>
+      </div>
+
+      <div class="card sectionPad">
+        <div class="totalBar" id="stepsTotalBar">Today: —</div>
+
+        <div class="formRow" style="margin-top:10px">
+          <div><label>Date</label><input id="s_date" type="date"></div>
+          <div><label>Steps</label><input id="s_steps" inputmode="numeric" placeholder="8000"></div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <button class="btnSm" id="s_cancel" style="display:none">Cancel</button>
+          <button class="btnSm" id="s_save" style="flex:1;background:linear-gradient(135deg,#f7971e 0%, #ffd200 100%);color:#140d2e;border:none">Add</button>
+        </div>
+
+        <div style="margin-top:12px" class="list" id="s_list"></div>
+        <div class="small" style="margin-top:10px;opacity:.8">
+          Tip: enter your steps once per day (edit if you re-check later).
+        </div>
+      </div>
+    </div>
+
+<!-- SETTINGS (simple modal) -->
     <div class="card sectionPad hidden" id="settingsModal">
       <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
         <div style="font-weight:950;font-size:18px">Settings</div>
@@ -551,6 +593,7 @@ textarea{min-height:110px;resize:vertical}
       </div>
       <label>Calories/day</label><input id="t_cal" inputmode="numeric">
       <label>Protein/day (g)</label><input id="t_pro" inputmode="numeric">
+      <label>Steps/day target</label><input id="t_steps" inputmode="numeric" placeholder="8000">
       <div class="formRow">
         <div><label>Age</label><input id="age" inputmode="numeric"></div>
         <div><label>Sex</label><select id="sex"><option value="male">Male</option><option value="female">Female</option></select></div>
@@ -571,7 +614,7 @@ textarea{min-height:110px;resize:vertical}
 
 <script>
 (() => {
-  const APP_KEY="fitness_log_vibrant_v2_1";
+  const APP_KEY="fitness_log_vibrant_v2_2";
   const todayISO=()=>new Date().toISOString().slice(0,10);
   const uid=()=>Math.random().toString(16).slice(2)+Date.now().toString(16);
   const $=(id)=>document.getElementById(id);
@@ -581,8 +624,8 @@ textarea{min-height:110px;resize:vertical}
 
   const defaultStore=()=>({
     profile:{age:30,sex:"male",heightCm:178,weightKg:84.5,gymDays:4,goal:"75kg with visible six-pack, then lean gain"},
-    targets:{calories:2200,proteinG:170},
-    weights:[], meals:[], progress:[],
+    targets:{calories:2200,proteinG:170,steps:8000},
+    weights:[], meals:[], progress:[], steps:[],
     coach:{meals:"",workouts:"",progress:""},
     workoutDays:[
       {id:"push",name:"Push",notes:"",scheduled:[1,4],exercises:[{name:"Bench Press",defaultSets:3},{name:"Overhead Press",defaultSets:3},{name:"Tricep Extensions",defaultSets:3}]},
@@ -602,6 +645,7 @@ textarea{min-height:110px;resize:vertical}
     meals: $("page-meals"),
     weight: $("page-weight"),
     progress: $("page-progress"),
+    steps: $("page-steps"),
   };
 
   function setPage(name){
@@ -613,6 +657,7 @@ textarea{min-height:110px;resize:vertical}
     if(name==="meals") renderMealsPage();
     if(name==="weight") renderWeightPage();
     if(name==="progress") renderProgressPage();
+    if(name==="steps") renderStepsPage();
     if(name==="workouts"){ renderWorkoutDays(); showWorkoutDaysView(); }
   }
 
@@ -630,6 +675,7 @@ textarea{min-height:110px;resize:vertical}
   function fillSettings(){
     $("t_cal").value=store.targets.calories||"";
     $("t_pro").value=store.targets.proteinG||"";
+    $("t_steps").value=store.targets.steps||"";
     $("age").value=store.profile.age||"";
     $("sex").value=store.profile.sex||"male";
     $("heightCm").value=store.profile.heightCm||"";
@@ -645,9 +691,10 @@ textarea{min-height:110px;resize:vertical}
   $("btnSettings").addEventListener("click", openSettings);
   $("closeSettings").addEventListener("click", ()=> $("settingsModal").classList.add("hidden"));
   $("saveSettings").addEventListener("click", ()=>{
-    const c=Number($("t_cal").value), p=Number($("t_pro").value);
+    const c=Number($("t_cal").value), p=Number($("t_pro").value), s=Number($("t_steps").value);
     if(Number.isFinite(c)&&c>0) store.targets.calories=c;
     if(Number.isFinite(p)&&p>0) store.targets.proteinG=p;
+    if(Number.isFinite(s)&&s>0) store.targets.steps=s;
     store.profile.age=Number($("age").value)||store.profile.age;
     store.profile.sex=$("sex").value||store.profile.sex;
     store.profile.heightCm=Number($("heightCm").value)||store.profile.heightCm;
@@ -710,6 +757,18 @@ textarea{min-height:110px;resize:vertical}
 
     // Workouts tile
     $("dashWorkouts").textContent = String(workoutsThisWeek());
+
+
+    // Steps tile
+    const stepTarget = Number(store.targets?.steps||0);
+    const today = todayISO();
+    const todayEntry = (store.steps||[]).find(s=>s.date===today);
+    const todaySteps = todayEntry ? Number(todayEntry.steps)||0 : 0;
+    if(document.getElementById("dashSteps")){
+      document.getElementById("dashSteps").textContent = String(todaySteps);
+      document.getElementById("dashStepsSub").textContent = stepTarget ? `Target: ${stepTarget}` : "Set target in Settings";
+    }
+
 
     // Rings
     const tC=Number(store.targets?.calories||0), tP=Number(store.targets?.proteinG||0);
@@ -946,6 +1005,53 @@ textarea{min-height:110px;resize:vertical}
     save();
     $("p_cancel").click();
     renderProgressPage();
+  });
+
+
+  // --- Steps page ---
+  let s_edit=null;
+  function renderStepsPage(){
+    $("s_date").value=todayISO();
+    const t=todayISO();
+    const target=Number(store.targets?.steps||0);
+    const todayEntry=(store.steps||[]).find(x=>x.date===t);
+    const todaySteps=todayEntry?Number(todayEntry.steps)||0:0;
+    $("stepsTotalBar").textContent = target ? `Today: ${todaySteps} / ${target} steps` : `Today: ${todaySteps} steps (set target in Settings)`;
+
+    const list=$("s_list");
+    list.innerHTML="";
+    const sorted=[...(store.steps||[])].sort((a,b)=>a.date<b.date?1:-1);
+    sorted.forEach(e=>{
+      const div=document.createElement("div");
+      div.className="item";
+      div.innerHTML = `<div class="itemTitle">${e.steps} steps</div><div class="itemMeta">${e.date}</div>`;
+      const acts=document.createElement("div"); acts.className="itemActions";
+      const b1=document.createElement("button"); b1.className="btnSm"; b1.textContent="Edit";
+      b1.onclick=()=>{s_edit=e.id; $("s_date").value=e.date; $("s_steps").value=e.steps; $("s_cancel").style.display="inline-block"; $("s_save").textContent="Save";};
+      const b2=document.createElement("button"); b2.className="btnSm danger"; b2.textContent="Delete";
+      b2.onclick=()=>{store.steps=store.steps.filter(x=>x.id!==e.id); save(); renderStepsPage(); renderDashboard();};
+      acts.append(b1,b2); div.append(acts); list.append(div);
+    });
+    if(!sorted.length){
+      const empty=document.createElement("div");
+      empty.className="item";
+      empty.innerHTML = `<div class="itemTitle">No steps logged yet</div><div class="itemMeta">Add your steps above</div>`;
+      list.append(empty);
+    }
+  }
+  $("s_cancel").addEventListener("click", ()=>{
+    s_edit=null; $("s_date").value=todayISO(); $("s_steps").value=""; $("s_cancel").style.display="none"; $("s_save").textContent="Add";
+  });
+  $("s_save").addEventListener("click", ()=>{
+    const date=$("s_date").value||todayISO();
+    const steps=Number($("s_steps").value);
+    if(!Number.isFinite(steps) || steps<0){alert("Enter a valid step count");return;}
+    const payload={date,steps:Math.round(steps)};
+    if(s_edit) store.steps=store.steps.map(x=>x.id===s_edit?({...x,...payload}):x);
+    else store.steps.unshift({id:uid(),...payload});
+    save();
+    $("s_cancel").click();
+    renderStepsPage(); renderDashboard();
   });
 
   // --- Workouts page ---
@@ -1277,6 +1383,7 @@ textarea{min-height:110px;resize:vertical}
   renderMealsPage();
   renderWeightPage();
   renderProgressPage();
+  renderStepsPage();
 })();
 </script>
 
